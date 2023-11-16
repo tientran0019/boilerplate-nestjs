@@ -4,9 +4,11 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 
 import helmet from '@fastify/helmet';
-import fastifyCsrf from '@fastify/csrf-protection';
+import csrf from '@fastify/csrf-protection';
 
 import { AppModule } from './app.module';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
 
 async function bootstrap() {
 	const app = await NestFactory.create<NestFastifyApplication>(
@@ -21,7 +23,17 @@ async function bootstrap() {
 	app.enableVersioning();
 
 
-	app.useGlobalPipes(new ValidationPipe());
+	app.useGlobalPipes(new ValidationPipe({
+		enableDebugMessages: process.env.NODE_ENV === 'development',
+		/**
+		* If set to true validator will strip validated object of any properties that do not have any decorators.
+		*
+		* Tip: if no other decorator is suitable for your property use @Allow decorator.
+		*/
+		whitelist: true,
+		forbidNonWhitelisted: true,
+		transform: true,
+	}));
 
 	app.enableCors({
 		origin: process.env.CORS_DOMAIN ? process.env.CORS_DOMAIN.split(',') : '*',
@@ -32,7 +44,7 @@ async function bootstrap() {
 		credentials: true,
 	});
 
-	await app.register(fastifyCsrf);
+	await app.register(csrf);
 
 	await app.register(helmet, {
 		contentSecurityPolicy: {
@@ -46,13 +58,18 @@ async function bootstrap() {
 	});
 
 	const options = new DocumentBuilder()
-		.setTitle('Cats example')
-		.setDescription('The cats API description')
+		.setTitle('APIs')
+		.setDescription('The API description')
 		.setVersion('1.0')
 		.addTag('cats')
 		.addBearerAuth()
 		.build();
-	const document = SwaggerModule.createDocument(app, options);
+	const document = SwaggerModule.createDocument(app, options, {
+		include: [
+			UsersModule,
+			AuthModule,
+		],
+	});
 	SwaggerModule.setup('api', app, document);
 
 	await app.listen(process.env.PORT, process.env.HOST);

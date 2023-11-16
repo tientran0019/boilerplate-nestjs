@@ -1,10 +1,10 @@
 import { Body, Controller, Delete, Get, Param, Post, UseGuards } from '@nestjs/common';
-import { Roles } from '../common/decorators/roles.decorator';
-import { RolesGuard } from '../common/guards/roles.guard';
-import { ParseIntPipe } from '../common/pipes/parse-int.pipe';
-import { CatsService } from './cats.service';
-import { CreateCatDto } from './dto/create-cat.dto';
-import { Cat } from './schemas/cat.schema';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { ParseIntPipe } from 'src/common/pipes/parse-int.pipe';
+import { CatsService } from 'src/cats//cats.service';
+import { CreateCatDto } from 'src/cats//dto/create-cat.dto';
+import { Cat } from 'src/cats//schemas/cat.schema';
 
 @UseGuards(RolesGuard)
 @Controller('cats')

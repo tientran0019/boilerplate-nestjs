@@ -15,7 +15,7 @@ export class ExceptionInterceptor implements NestInterceptor {
 		return next
 			.handle()
 			.pipe(
-				catchError((err) =>
+				catchError(() =>
 					throwError(
 						() =>
 							new HttpException(

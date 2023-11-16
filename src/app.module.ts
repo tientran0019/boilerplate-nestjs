@@ -8,10 +8,15 @@ import { AppController } from 'src/app.controller';
 import { AppService } from 'src/app.service';
 import { CatsModule } from 'src/cats/cats.module';
 import { CoreModule } from 'src/core/core.module';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
 	imports: [
-		ConfigModule.forRoot(),
+		ConfigModule.forRoot({
+			envFilePath: '.env',
+			isGlobal: true,
+		}),
 		MongooseModule.forRoot(process.env.MONGO_URL),
 		ThrottlerModule.forRoot([{
 			ttl: 60000,
@@ -19,6 +24,8 @@ import { CoreModule } from 'src/core/core.module';
 		}]),
 		CatsModule,
 		CoreModule,
+		UsersModule,
+		AuthModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],
