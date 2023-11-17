@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, HydratedDocument } from 'mongoose';
-import { UserRole } from 'src/constants/user';
+import { UserRole, UserStatus } from 'src/constants/user';
 
 export type UserDocument = HydratedDocument<User>;
 
@@ -8,6 +8,7 @@ export type UserDocument = HydratedDocument<User>;
 	timestamps: { currentTime: () => Date.now() },
 	autoIndex: true,
 	versionKey: false,
+	collection: 'User',
 })
 export class User extends Document {
 	@Prop()
@@ -22,15 +23,7 @@ export class User extends Document {
 		text: true,
 		trim: true,
 	})
-	firstName: string;
-
-	@Prop({
-		required: true,
-		index: true,
-		text: true,
-		trim: true,
-	})
-	lastName: string;
+	fullName: string;
 
 	@Prop({
 		required: true,
@@ -44,15 +37,30 @@ export class User extends Document {
 	email: string;
 
 	@Prop({
-		required: true,
+		index: true,
+		text: true,
+		lowercase: true,
+		trim: true,
 	})
-	password: string;
+	phone: string;
 
 	@Prop({
 		enum: UserRole,
 		default: UserRole.USER,
 	})
 	role: UserRole;
+
+	@Prop({
+		enum: UserStatus,
+		default: UserStatus.ACTIVE,
+	})
+	status: UserStatus;
+
+	@Prop()
+	lastLoginAt: number;
+
+	@Prop()
+	country: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

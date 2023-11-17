@@ -1,74 +1,98 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
-import { LoginDto } from './dto/auth.dto';
+import { CredentialsDto } from './dto/credentials.dto';
 import { compare } from 'bcrypt';
-import { jwtConstants } from 'src/constants/jwt';
-
-const EXPIRE_TIME = 20 * 1000;
+import { User } from 'src/users/schemas/user.schema';
+import { AccessTokenService } from './accesstoken.service';
+import { RefreshTokenService } from './refreshtoken.service';
+import { TokenObject } from './types';
+import { FastifyRequest } from 'fastify';
 
 @Injectable()
 export class AuthService {
 	constructor(
 		private usersService: UsersService,
-		private jwtService: JwtService,
+		private accessTokenService: AccessTokenService,
+		private refreshTokenService: RefreshTokenService,
 	) { }
 
-	async login(dto: LoginDto) {
-		const user = await this.validateUser(dto);
+	async login(dto: CredentialsDto) {
+		const user = await this.verifyCredentials(dto);
 
-		const payload = {
-			userId: user.id,
-			sub: {
-				name: user.firstName + ' ' + user.lastName,
-				email: user.email,
-				role: user.role,
-			},
-		};
+		const token = await this.accessTokenService.generateToken(user);
 
 		return {
 			user,
 			backendTokens: {
-				accessToken: await this.jwtService.signAsync(payload, {
-					expiresIn: jwtConstants.tokenExpiresIn,
-					secret: jwtConstants.tokenSecret,
-				}),
-				refreshToken: await this.jwtService.signAsync(payload, {
-					expiresIn: jwtConstants.refreshExpiresIn,
-					issuer: jwtConstants.refreshIssuer,
-					secret: jwtConstants.refreshSecret,
-				}),
-				expiresIn: new Date().setTime(new Date().getTime() + EXPIRE_TIME),
+				accessToken: token,
+				refreshToken: await this.refreshTokenService.generateToken(user.id, token),
+				expiresIn: process.env.TOKEN_EXPIRES_IN,
 			},
 		};
 	}
 
-	async validateUser(dto: LoginDto) {
-		const user = await this.usersService.findByEmail(dto.email);
+	async verifyCredentials(credentials: CredentialsDto): Promise<User> {
+		const { email, password } = credentials;
 
-		if (user && (await compare(dto.password, user.password))) {
-			// const { password, ...result } = user;
-			return user;
+		const invalidCredentialsError = 'Invalid email or password.';
+
+		if (!email) {
+			throw new UnauthorizedException(invalidCredentialsError);
 		}
-		throw new UnauthorizedException('Invalid email or password');
+		const foundUser = await this.usersService.findByEmail(email);
+
+		if (!foundUser) {
+			throw new UnauthorizedException(invalidCredentialsError);
+		}
+
+		const credentialsFound = await this.usersService.findCredentials(
+			foundUser.id,
+		);
+
+		if (!credentialsFound) {
+			throw new UnauthorizedException(invalidCredentialsError);
+		}
+
+		const passwordMatched = await compare(
+			password,
+			credentialsFound.password,
+		);
+
+		if (!passwordMatched) {
+			throw new UnauthorizedException(invalidCredentialsError);
+		}
+
+		return foundUser;
 	}
 
-	async refreshToken(user: any) {
-		const payload = {
-			email: user.email,
-			sub: user.sub,
-		};
+	async refreshToken(req: FastifyRequest): Promise<TokenObject> {
+		const refreshToken = this.refreshTokenService.extractTokenFromHeader(req);
 
-		return {
-			accessToken: await this.jwtService.signAsync(payload, {
-				expiresIn: '20s',
-				secret: process.env.jwtSecretKey,
-			}),
-			refreshToken: await this.jwtService.signAsync(payload, {
-				expiresIn: '7d',
-				secret: process.env.jwtRefreshTokenKey,
-			}),
-			expiresIn: new Date().setTime(new Date().getTime() + EXPIRE_TIME),
-		};
+		if (!refreshToken) {
+			throw new UnauthorizedException(`Error verifying token : Token not found`);
+		}
+
+		return await this.refreshTokenService.refreshToken(refreshToken);
+	}
+
+	async logout(req: FastifyRequest): Promise<object> {
+		try {
+			const accessToken = this.accessTokenService.extractTokenFromHeader(req);
+			const refreshToken = this.refreshTokenService.extractTokenFromHeader(req);
+
+			if (!accessToken || !refreshToken) {
+				throw new UnauthorizedException(`Error verifying token : Invalid Token`);
+			}
+
+			await this.accessTokenService.revokeToken(accessToken);
+
+			await this.refreshTokenService.revokeToken(refreshToken);
+
+			return {
+				success: true,
+			};
+		} catch (err) {
+			throw new InternalServerErrorException(err.message);
+		}
 	}
 }

@@ -12,7 +12,7 @@ import { AuthService } from './auth.service';
 import { Public } from './decorators/public.decorator';
 import { UsersService } from 'src/users/users.service';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
-import { LoginDto } from './dto/auth.dto';
+import { CredentialsDto } from './dto/credentials.dto';
 import { RefreshJwtGuard } from './guards/refresh.guard';
 
 @Controller('auth')
@@ -25,7 +25,7 @@ export class AuthController {
 	@Public()
 	@HttpCode(HttpStatus.OK)
 	@Post('login')
-	async login(@Body() dto: LoginDto) {
+	async login(@Body() dto: CredentialsDto) {
 		return await this.authService.login(dto);
 	  }
 
@@ -41,11 +41,13 @@ export class AuthController {
 		return await this.userService.create(dto);
 	}
 
-	@UseGuards(RefreshJwtGuard)
+	// @UseGuards(RefreshJwtGuard)
+	@Public()
+	@HttpCode(HttpStatus.OK)
 	@Post('refresh')
 	async refreshToken(@Request() req) {
 		console.log('refreshed');
 
-		return await this.authService.refreshToken(req.user);
+		return await this.authService.refreshToken(req);
 	}
 }

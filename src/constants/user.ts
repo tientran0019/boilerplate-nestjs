@@ -3,3 +3,9 @@ export enum UserRole {
 	ADMIN = 'ADMIN',
 	BLOGGER = 'BLOGGER'
 }
+
+export enum UserStatus {
+	ACTIVE = 'ACTIVE',
+	PADDING = 'PADDING',
+	INACTIVE = 'INACTIVE',
+}

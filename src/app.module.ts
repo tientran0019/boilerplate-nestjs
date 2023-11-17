@@ -4,26 +4,35 @@ import { ThrottlerModule } from '@nestjs/throttler';
 
 import { MongooseModule } from '@nestjs/mongoose';
 
+import redisStore from 'cache-manager-ioredis-yet';
+import { CacheModule } from '@nestjs/cache-manager';
+
 import { AppController } from 'src/app.controller';
 import { AppService } from 'src/app.service';
-import { CatsModule } from 'src/cats/cats.module';
-import { CoreModule } from 'src/core/core.module';
+// import { CoreModule } from 'src/core/core.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
 	imports: [
 		ConfigModule.forRoot({
-			envFilePath: '.env',
 			isGlobal: true,
+			envFilePath: '.env',
+		}),
+		CacheModule.register({
+			isGlobal: true,
+			// @ts-ignore
+			store: redisStore,
+			host: process.env.REDIS_HOST,
+			port: process.env.REDIS_PORT,
+			database: process.env.REDIS_DATABASE,
 		}),
 		MongooseModule.forRoot(process.env.MONGO_URL),
 		ThrottlerModule.forRoot([{
 			ttl: 60000,
 			limit: 100,
 		}]),
-		CatsModule,
-		CoreModule,
+		// CoreModule,
 		UsersModule,
 		AuthModule,
 	],
