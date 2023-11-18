@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { InjectModel } from '@nestjs/mongoose';
 import { RefreshToken } from './schemas/refresh-token.schema';
 import { Model } from 'mongoose';
-import { AccessTokenService } from './accesstoken.service';
+import { AccessTokenService } from './access-token.service';
 import { TokenObject } from './types';
 import { FastifyRequest } from 'fastify';
 

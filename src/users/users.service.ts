@@ -6,7 +6,7 @@ import { hash } from 'bcrypt';
 // import omit from 'tily/object/omit';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { UserStatus } from 'src/constants/user';
+import { UserStatus } from 'src/constants/user.enum';
 import { UserCredentials } from './schemas/user-credentials.schema';
 import { UserProfileForToken } from 'src/auth/types';
 

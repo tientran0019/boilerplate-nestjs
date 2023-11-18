@@ -41,8 +41,8 @@ export class AuthController {
 		return await this.userService.create(dto);
 	}
 
-	// @UseGuards(RefreshJwtGuard)
 	@Public()
+	@UseGuards(RefreshJwtGuard)
 	@HttpCode(HttpStatus.OK)
 	@Post('refresh')
 	async refreshToken(@Request() req) {

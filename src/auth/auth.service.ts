@@ -3,8 +3,8 @@ import { UsersService } from '../users/users.service';
 import { CredentialsDto } from './dto/credentials.dto';
 import { compare } from 'bcrypt';
 import { User } from 'src/users/schemas/user.schema';
-import { AccessTokenService } from './accesstoken.service';
-import { RefreshTokenService } from './refreshtoken.service';
+import { AccessTokenService } from './access-token.service';
+import { RefreshTokenService } from './refresh-token.service';
 import { TokenObject } from './types';
 import { FastifyRequest } from 'fastify';
 
