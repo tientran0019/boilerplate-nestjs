@@ -16,7 +16,6 @@ export class AccessTokenService {
 	) { }
 
 	async verifyToken(token: string): Promise<UserProfileForToken> {
-		console.log('DEV ~ file: accesstoken.service.ts:19 ~ AccessTokenService ~ verifyToken ~ token:', token);
 		if (!token) {
 			throw new UnauthorizedException(
 				`Error verifying token : 'token' is null`,

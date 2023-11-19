@@ -9,7 +9,7 @@ import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { AccessTokenService } from '../access-token.service';
 
 @Injectable()
-export class AuthGuard implements CanActivate {
+export class AuthenticateGuard implements CanActivate {
 	constructor(
 		private accessTokenService: AccessTokenService,
 		private reflector: Reflector,
@@ -20,6 +20,7 @@ export class AuthGuard implements CanActivate {
 			context.getHandler(),
 			context.getClass(),
 		]);
+		console.log('DEV ~ file: authenticate.guard.ts:23 ~ AuthenticateGuard ~ canActivate ~ isPublic:', isPublic);
 
 		if (isPublic) {
 			// 💡 See this condition

@@ -96,7 +96,6 @@ export class RefreshTokenService {
 				await this.accessTokenService.revokeToken(token);
 			}
 		} catch (e) {
-			console.log('DEV ~ file: refreshtoken.service.ts:99 ~ RefreshTokenService ~ revokeCurrentToken ~ e:', e);
 			// ignore
 		}
 	}

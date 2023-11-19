@@ -3,13 +3,13 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
-import { AuthGuard } from './guards/auth.guard';
+import { AuthenticateGuard } from './guards/authenticate.guard';
 import { AuthService } from './auth.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { RefreshToken, RefreshTokenSchema } from './schemas/refresh-token.schema';
 import { RefreshTokenService } from './refresh-token.service';
 import { AccessTokenService } from './access-token.service';
-import { RolesGuard } from './guards/roles.guard';
+import { AuthorizeGuard } from './guards/authorize.guard';
 
 @Module({
 	imports: [
@@ -25,8 +25,12 @@ import { RolesGuard } from './guards/roles.guard';
 		AccessTokenService,
 		{
 			provide: APP_GUARD,
-			useClass: RolesGuard,
+			useClass: AuthorizeGuard,
 		},
+		// {
+		// 	provide: APP_GUARD,
+		// 	useClass: AuthenticateGuard,
+		// },
 	],
 	controllers: [AuthController],
 	exports: [

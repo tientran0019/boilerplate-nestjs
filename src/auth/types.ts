@@ -31,3 +31,17 @@ export interface UserProfileForToken {
 	role: string;
 	// [attribute: string]: any;
 }
+
+/**
+ * Authorization metadata supplied via `@authorize` decorator
+ */
+export interface AuthorizationMetadata {
+    /**
+     * Roles that are allowed access
+     */
+    allowedRoles?: string[];
+    /**
+     * Roles that are denied access
+     */
+    deniedRoles?: string[];
+}
