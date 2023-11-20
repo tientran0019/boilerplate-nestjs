@@ -20,7 +20,6 @@ export class AuthenticateGuard implements CanActivate {
 			context.getHandler(),
 			context.getClass(),
 		]);
-		console.log('DEV ~ file: authenticate.guard.ts:23 ~ AuthenticateGuard ~ canActivate ~ isPublic:', isPublic);
 
 		if (isPublic) {
 			// 💡 See this condition

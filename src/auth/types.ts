@@ -1,11 +1,14 @@
+import { FastifyRequest } from 'fastify';
 
 /**
  * Built-in roles
  */
-export const OWNER = '$owner';
-export const EVERYONE = '$everyone';
-export const AUTHENTICATED = '$authenticated';
-export const UNAUTHENTICATED = '$unauthenticated';
+export enum Permissions {
+	OWNER = '$owner',
+	EVERYONE = '$everyone',
+	AUTHENTICATED = '$authenticated',
+	UNAUTHENTICATED = '$unauthenticated',
+}
 
 /**
  * Describes the token object that returned by the refresh token service functions.
@@ -44,4 +47,8 @@ export interface AuthorizationMetadata {
      * Roles that are denied access
      */
     deniedRoles?: string[];
+}
+
+export interface RequestWithAuth extends FastifyRequest {
+	currentUser: UserProfileForToken
 }

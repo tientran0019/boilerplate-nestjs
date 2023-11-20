@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AUTHORIZE_KEY } from '../decorators/authorize.decorator';
-import { AuthorizationMetadata, Permissions, UserProfileForToken } from '../types';
+import { Permissions, AuthorizationMetadata,  UserProfileForToken } from '../types';
 import { AccessTokenService } from '../access-token.service';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
@@ -45,42 +45,50 @@ export class AuthorizeGuard implements CanActivate {
 			return true;
 		}
 
-		if ((!allowedRoles || allowedRoles.length === 0) && (!deniedRoles || deniedRoles.length === 0)) {
+		if (!allowedRoles && !deniedRoles) {
 			return true;
 		}
 
-		let canAccess = false;
-
-		if (allowedRoles?.length > 0) {
-			if (allowedRoles?.includes(Permissions.EVERYONE)) {
-				canAccess = true;
-			} else if (allowedRoles?.includes(Permissions.AUTHENTICATED)) {
-				canAccess = !!currentUser;
-			} else if (allowedRoles?.includes(Permissions.UNAUTHENTICATED)) {
-				canAccess = !currentUser;
-			} else {
-				if (currentUser?.role && allowedRoles?.includes(currentUser.role)) {
-					return true;
-				} else {
-					return false;
-				}
-			}
+		if (deniedRoles?.includes(Permissions.EVERYONE)) {
+			return false;
 		}
 
-		if (deniedRoles?.length > 0) {
-			if (deniedRoles?.includes(Permissions.EVERYONE)) {
-				canAccess = false;
-			} else if (deniedRoles?.includes(Permissions.AUTHENTICATED)) {
-				canAccess = !currentUser;
-			} else if (deniedRoles?.includes(Permissions.UNAUTHENTICATED)) {
-				canAccess = !!currentUser;
-			} else {
-				if (currentUser?.role && deniedRoles?.includes(currentUser.role)) {
-					return false;
-				} else {
-					return true;
-				}
+		if (allowedRoles?.includes(Permissions.EVERYONE)) {
+			return true;
+		}
+
+		if (deniedRoles?.includes(Permissions.AUTHENTICATED)) {
+			if (currentUser) {
+				return false;
 			}
+			return true;
+		}
+
+		if (deniedRoles?.includes(Permissions.UNAUTHENTICATED)) {
+			if (!currentUser) {
+				return false;
+			}
+			return true;
+		}
+
+		if (allowedRoles?.includes(Permissions.AUTHENTICATED)) {
+			if (!currentUser) {
+				return false;
+			}
+			return true;
+		}
+
+		if (allowedRoles?.includes(Permissions.UNAUTHENTICATED)) {
+			if (currentUser) {
+				return false;
+			}
+			return true;
+		}
+
+		console.log('DEV ~ file: authorize.guard.ts:65 ~ AuthorizeGuard ~ canActivate ~ currentUser:', currentUser);
+
+		if (!currentUser?.role) {
+			return false;
 		}
 
 		/**
@@ -89,14 +97,19 @@ export class AuthorizeGuard implements CanActivate {
 		 * eg. @post('/users/{userId}/orders', ...) returns `userId` as args[0]
 		 */
 		if (deniedRoles?.includes(Permissions.OWNER) && currentUser.id === 'TODO') {
-			canAccess = false;
+			return false;
 		}
 		if (allowedRoles?.includes(Permissions.OWNER) && currentUser.id === 'TODO') {
-			canAccess = true;
+			return true;
 		}
 
-		console.log('DEV ~ file: authorize.guard.ts:116 ~ AuthorizeGuard ~ canActivate ~ canAccess:', canAccess);
+		if (!allowedRoles || allowedRoles.length === 0) {
+			if (!deniedRoles || deniedRoles.length === 0) {
+				return true;
+			}
+			return deniedRoles?.includes(currentUser.role) ? false : true;
+		}
 
-		return canAccess;
+		return allowedRoles?.includes(currentUser.role) ? true : false;
 	}
 }

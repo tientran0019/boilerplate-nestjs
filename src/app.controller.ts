@@ -17,7 +17,7 @@ import { Roles } from './auth/decorators/roles.decorator';
 import { UserRole } from './constants/user.enum';
 import { Public } from './auth/decorators/public.decorator';
 import { Authorize } from './auth/decorators/authorize.decorator';
-import { AUTHENTICATED, OWNER, EVERYONE, UNAUTHENTICATED } from './auth/types';
+import { Permissions, RequestWithAuth } from './auth/types';
 
 @Controller()
 export class AppController {
@@ -26,12 +26,13 @@ export class AppController {
 	@Get()
 	// @Public()
 	@Authorize({
-		// allowedRoles: [EVERYONE],
-		deniedRoles: [UserRole.USER],
+		deniedRoles: [Permissions.AUTHENTICATED],
+		// deniedRoles: [UserRole.USER],
 	})
-	getHello(@Request() req: FastifyRequest): object {
+	getHello(@Request() req: RequestWithAuth): object {
 		// const language: string = req.acceptsLanguages(['en', 'vi']) || 'en';
 		// Reply with a greeting, the current time, the url, and request headers
+
 		return {
 			greeting: this.appService.getHello(),
 			date: new Date(),
@@ -40,7 +41,7 @@ export class AppController {
 			// useragent: req.get('user-agent'),
 			// clientId: req.get('x-client-id'),
 			ipAddress: req.ip,
-			currentUser: req['currentUser'],
+			currentUser: req.currentUser,
 			// language,
 		};
 	}
