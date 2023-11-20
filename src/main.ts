@@ -22,7 +22,6 @@ async function bootstrap() {
 	});
 	app.enableVersioning();
 
-
 	app.useGlobalPipes(new ValidationPipe({
 		enableDebugMessages: process.env.NODE_ENV === 'development',
 		/**

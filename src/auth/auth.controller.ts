@@ -2,52 +2,97 @@ import {
 	Body,
 	Controller,
 	Get,
-	HttpCode,
-	HttpStatus,
+	NotFoundException,
+	Patch,
 	Post,
 	Request,
 	UseGuards,
 } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { Public } from './decorators/public.decorator';
-import { UsersService } from 'src/users/users.service';
-import { CreateUserDto } from 'src/users/dto/create-user.dto';
-import { CredentialsDto } from './dto/credentials.dto';
-import { RefreshJwtGuard } from './guards/refresh.guard';
+import { AuthService } from './services/auth.service';
+import { CredentialsDto } from 'src/auth/dto/credentials.dto';
+import { RefreshJwtGuard } from 'src/auth/guards/refresh.guard';
+import { Permissions, ResLoginObject, TokenObject } from 'src/auth/types';
+import { User } from 'src/users/schemas/user.schema';
+import { Authorize } from 'src/auth/decorators/authorize.decorator';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { SignupDto } from './dto/signup.dto';
+import { ChangePasswordDto } from './dto/change-password';
+import {
+	ApiBearerAuth,
+	ApiOperation,
+	ApiTags,
+} from '@nestjs/swagger';
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
 	constructor(
-		private userService: UsersService,
 		private authService: AuthService,
 	) { }
 
-	@Public()
-	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Login User' })
+	@Authorize({
+		allowedRoles: [Permissions.UNAUTHENTICATED],
+	})
 	@Post('login')
-	async login(@Body() dto: CredentialsDto) {
+	async login(@Body() dto: CredentialsDto): Promise<ResLoginObject> {
 		return await this.authService.login(dto);
-	  }
-
-	@Get('profile')
-	getProfile(@Request() req) {
-		return req.user;
 	}
 
-	@Public()
-	@HttpCode(HttpStatus.OK)
-	@Post('register')
-	async registerUser(@Body() dto: CreateUserDto) {
-		return await this.userService.create(dto);
+	@ApiBearerAuth()
+	@Authorize({
+		allowedRoles: [Permissions.AUTHENTICATED],
+	})
+	@Get('me')
+	async getProfile(@Request() req): Promise<User> {
+		const user = await this.authService.findById(req.currentUser.id);
+
+		if (!user) {
+			throw new NotFoundException('User not found');
+		}
+
+		return user;
 	}
 
-	@Public()
+	@ApiBearerAuth()
+	@Authorize({
+		allowedRoles: [Permissions.AUTHENTICATED],
+	})
+	@Patch('update-profile')
+	async updateProfile(@Request() req, @Body() dto: UpdateProfileDto): Promise<User> {
+		const user = await this.authService.updateProfile(req.currentUser.id, dto);
+
+		return user;
+	}
+
+	@ApiOperation({ summary: 'Change password' })
+    @ApiBearerAuth()
+	@Authorize({
+		allowedRoles: [Permissions.AUTHENTICATED],
+	})
+	@Patch('change-password')
+	async changePassword(@Request() req, @Body() dto: ChangePasswordDto): Promise<object> {
+		return await this.authService.changePassword(req.currentUser.id, dto);
+	}
+
+	@ApiOperation({ summary: 'User signup' })
+	@Authorize({
+		allowedRoles: [Permissions.UNAUTHENTICATED],
+	})
+	@Post('signup')
+	async signUp(@Body() dto: SignupDto): Promise<User> {
+		return await this.authService.signup(dto);
+	}
+
 	@UseGuards(RefreshJwtGuard)
-	@HttpCode(HttpStatus.OK)
 	@Post('refresh')
-	async refreshToken(@Request() req) {
-		console.log('refreshed');
-
+	async refreshToken(@Request() req): Promise<TokenObject> {
 		return await this.authService.refreshToken(req);
+	}
+
+	@UseGuards(RefreshJwtGuard)
+	@Post('logout')
+	async logout(@Request() req): Promise<object> {
+		return await this.authService.logout(req);
 	}
 }

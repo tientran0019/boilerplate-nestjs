@@ -1,20 +1,22 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '../users/users.service';
 import { v4 as uuidv4 } from 'uuid';
 import { InjectModel } from '@nestjs/mongoose';
-import { RefreshToken } from './schemas/refresh-token.schema';
+import { RefreshToken } from '../schemas/refresh-token.schema';
 import { Model } from 'mongoose';
 import { AccessTokenService } from './access-token.service';
-import { TokenObject } from './types';
+import { TokenObject } from '../types';
 import { FastifyRequest } from 'fastify';
+import { User } from 'src/users/schemas/user.schema';
+import async from 'async';
 
 @Injectable()
 export class RefreshTokenService {
 	constructor(
 		@InjectModel(RefreshToken.name)
 		private readonly refreshTokenModel: Model<RefreshToken>,
-		private usersService: UsersService,
+		@InjectModel(User.name)
+		private readonly usersModel: Model<User>,
 		private accessTokenService: AccessTokenService,
 		private jwtService: JwtService,
 	) { }
@@ -63,8 +65,8 @@ export class RefreshTokenService {
 
 			await this.revokeCurrentToken(userRefreshData.currentToken!);
 
-			const user = await this.usersService.findById(
-				userRefreshData.userId.toString(),
+			const user = await this.usersModel.findById(
+				userRefreshData.userId,
 			);
 
 			// create a JSON Web Token based on the user profile
@@ -79,6 +81,7 @@ export class RefreshTokenService {
 
 			return {
 				accessToken: token,
+				expiresIn: process.env.TOKEN_EXPIRES_IN,
 			};
 		} catch (error) {
 			throw new UnauthorizedException(
@@ -107,6 +110,23 @@ export class RefreshTokenService {
 			await this.revokeCurrentToken(userRefreshData.currentToken!);
 
 			await this.refreshTokenModel.findOneAndUpdate({ refreshToken }, { revoked: true, revokedAt: +new Date() });
+		} catch (error) {
+			// ignore
+		}
+	}
+
+	async revokeAllToken(userId: string): Promise<void> {
+		try {
+			const rfs = await this.refreshTokenModel.find({ userId, revoked: false }) || [];
+
+			await async.eachLimit(rfs, 10, async (rf: RefreshToken) => {
+				await this.revokeCurrentToken(rf.currentToken);
+
+				rf.revoked = true;
+				rf.revokedAt = +new Date();
+
+				await rf.save();
+			});
 		} catch (error) {
 			// ignore
 		}

@@ -1,6 +1,6 @@
 import { IsEmail, IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
 
-export class CreateUserDto {
+export class SignupDto {
 	@IsNotEmpty()
 	@IsString()
 	readonly fullName: string;
@@ -21,13 +21,4 @@ export class CreateUserDto {
 
 	@IsString()
 	readonly country: string;
-
-	// @Expose()
-	// get fullName(): string {
-	// 	return `${this.firstName} ${this.lastName}`;
-	// }
-
-	// @Transform(({ value }) => ("" + value).toLowerCase())
-	// @IsEnum(UserRole)
-	// role: UserRole;
 }

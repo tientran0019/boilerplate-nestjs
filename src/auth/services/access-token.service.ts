@@ -1,17 +1,19 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '../users/users.service';
-import { UserProfileForToken } from './types';
-import { User } from 'src/users/schemas/user.schema';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { FastifyRequest } from 'fastify';
 
+import { User } from 'src/users/schemas/user.schema';
+
+import { UserProfileForToken } from 'src/auth/types';
+import { convertToTokenProfile } from 'src/auth/utils';
+
 @Injectable()
 export class AccessTokenService {
 	constructor(
-		@Inject(CACHE_MANAGER) private cacheManager: Cache,
-		private usersService: UsersService,
+		@Inject(CACHE_MANAGER)
+		private cacheManager: Cache,
 		private jwtService: JwtService,
 	) { }
 
@@ -69,7 +71,7 @@ export class AccessTokenService {
 				'Error generating token : userProfile is null',
 			);
 		}
-		const userInfoForToken: UserProfileForToken = this.usersService.convertToUserProfile(user);
+		const userInfoForToken: UserProfileForToken = convertToTokenProfile(user);
 
 		// Generate a JSON Web Token
 		let token: string;

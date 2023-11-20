@@ -4,7 +4,7 @@ import {
 	Injectable,
 	UnauthorizedException,
 } from '@nestjs/common';
-import { RefreshTokenService } from '../refresh-token.service';
+import { RefreshTokenService } from '../services/refresh-token.service';
 
 @Injectable()
 export class RefreshJwtGuard implements CanActivate {

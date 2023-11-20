@@ -7,7 +7,7 @@ export class CredentialsDto {
 
 	@IsNotEmpty()
 	@IsString()
-	@MinLength(6, { message: 'Password should be at least 8 characters.' })
+	@MinLength(6, { message: 'Password should be at least 6 characters.' })
 	@MaxLength(30, { message: 'Password should not exceed 30 characters.' })
 	readonly password: string;
 }

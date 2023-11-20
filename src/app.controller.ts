@@ -26,8 +26,8 @@ export class AppController {
 	@Get()
 	// @Public()
 	@Authorize({
-		deniedRoles: [Permissions.AUTHENTICATED],
-		// deniedRoles: [UserRole.USER],
+		deniedRoles: [UserRole.USER],
+		allowedRoles: [Permissions.EVERYONE],
 	})
 	getHello(@Request() req: RequestWithAuth): object {
 		// const language: string = req.acceptsLanguages(['en', 'vi']) || 'en';

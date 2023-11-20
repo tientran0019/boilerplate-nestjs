@@ -1,4 +1,5 @@
 import { FastifyRequest } from 'fastify';
+import { User } from 'src/users/schemas/user.schema';
 
 /**
  * Built-in roles
@@ -18,6 +19,15 @@ export type TokenObject = {
 	expiresIn?: string | undefined;
 	refreshToken?: string | undefined;
 };
+
+export interface ResLoginObject {
+	user: User,
+	backendTokens: {
+		accessToken: string,
+		refreshToken: string,
+		expiresIn: string | number,
+	}
+}
 
 // Describes the type of grant object taken in by method "refresh"
 export type RefreshGrant = {

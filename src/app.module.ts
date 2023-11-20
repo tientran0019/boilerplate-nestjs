@@ -9,7 +9,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 
 import { AppController } from 'src/app.controller';
 import { AppService } from 'src/app.service';
-// import { CoreModule } from 'src/core/core.module';
+import { CoreModule } from 'src/core/core.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 
@@ -32,7 +32,7 @@ import { UsersModule } from './users/users.module';
 			ttl: 60000,
 			limit: 100,
 		}]),
-		// CoreModule,
+		CoreModule,
 		UsersModule,
 		AuthModule,
 	],
