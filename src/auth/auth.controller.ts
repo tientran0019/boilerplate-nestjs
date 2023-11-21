@@ -20,6 +20,7 @@ import { ChangePasswordDto } from './dto/change-password';
 import {
 	ApiBearerAuth,
 	ApiOperation,
+	ApiResponse,
 	ApiTags,
 } from '@nestjs/swagger';
 
@@ -35,11 +36,20 @@ export class AuthController {
 		allowedRoles: [Permissions.UNAUTHENTICATED],
 	})
 	@Post('login')
-	async login(@Body() dto: CredentialsDto): Promise<ResLoginObject> {
-		return await this.authService.login(dto);
+	async login(@Request() req, @Body() dto: CredentialsDto): Promise<ResLoginObject> {
+		return await this.authService.login(dto, {
+			useragent: req.headers['user-agent'],
+			clientId: req.headers['x-client-id'],
+			ip: req.ip,
+		});
 	}
 
 	@ApiBearerAuth()
+	@ApiResponse({
+		status: 200,
+		description: 'The found record',
+		type: SignupDto,
+	})
 	@Authorize({
 		allowedRoles: [Permissions.AUTHENTICATED],
 	})
@@ -55,6 +65,11 @@ export class AuthController {
 	}
 
 	@ApiBearerAuth()
+	@ApiResponse({
+		status: 200,
+		description: 'The found record',
+		type: SignupDto,
+	})
 	@Authorize({
 		allowedRoles: [Permissions.AUTHENTICATED],
 	})
@@ -66,7 +81,7 @@ export class AuthController {
 	}
 
 	@ApiOperation({ summary: 'Change password' })
-    @ApiBearerAuth()
+	@ApiBearerAuth()
 	@Authorize({
 		allowedRoles: [Permissions.AUTHENTICATED],
 	})
@@ -76,6 +91,11 @@ export class AuthController {
 	}
 
 	@ApiOperation({ summary: 'User signup' })
+	@ApiResponse({
+		status: 200,
+		description: 'The found record',
+		type: SignupDto,
+	})
 	@Authorize({
 		allowedRoles: [Permissions.UNAUTHENTICATED],
 	})

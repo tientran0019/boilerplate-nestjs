@@ -11,6 +11,7 @@ import { AccessTokenService } from 'src/auth/services/access-token.service';
 import { AuthorizeGuard } from 'src/auth/guards/authorize.guard';
 import { UserCredentials, UserCredentialsSchema } from 'src/auth/schemas/user-credentials.schema';
 import { User, UserSchema } from 'src/users/schemas/user.schema';
+import { MailModule } from 'src/mail/mail.module';
 
 @Module({
 	imports: [
@@ -20,6 +21,7 @@ import { User, UserSchema } from 'src/users/schemas/user.schema';
 			{ name: RefreshToken.name, schema: RefreshTokenSchema },
 		]),
 		JwtModule.register({}),
+		MailModule,
 	],
 	providers: [
 		AuthService,

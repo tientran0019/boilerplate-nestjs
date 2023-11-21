@@ -9,7 +9,7 @@
 * Last updated by: Tien Tran
 *------------------------------------------------------- */
 
-import { Controller, Get, Request } from '@nestjs/common';
+import { Controller, Get, Headers, Request } from '@nestjs/common';
 import { AppService } from './app.service';
 
 import { FastifyRequest } from 'fastify';
@@ -25,24 +25,26 @@ export class AppController {
 
 	@Get()
 	// @Public()
-	@Authorize({
-		deniedRoles: [UserRole.USER],
-		allowedRoles: [Permissions.EVERYONE],
-	})
-	getHello(@Request() req: RequestWithAuth): object {
-		// const language: string = req.acceptsLanguages(['en', 'vi']) || 'en';
+	// @Authorize({
+	// 	deniedRoles: [UserRole.USER],
+	// 	allowedRoles: [Permissions.EVERYONE],
+	// })
+	getHello(@Request() req: RequestWithAuth, @Headers('accept-language') acceptLanguage: any): object {
+		// const language = req.headers['accept-language'].split(',');
 		// Reply with a greeting, the current time, the url, and request headers
+		// @ts-ignore
+		console.log('DEV ~ file: app.controller.ts:42 ~ AppController ~ getHello ~ req.raw:', acceptLanguage);
 
 		return {
 			greeting: this.appService.getHello(),
 			date: new Date(),
 			url: req.protocol + '://' + req.hostname + req.url,
 			headers: Object.assign({}, req.headers),
-			// useragent: req.get('user-agent'),
-			// clientId: req.get('x-client-id'),
+			useragent: req.headers['user-agent'],
+			clientId: req.headers['x-client-id'],
 			ipAddress: req.ip,
 			currentUser: req.currentUser,
-			// language,
+			language: acceptLanguage,
 		};
 	}
 }

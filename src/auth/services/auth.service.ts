@@ -16,6 +16,7 @@ import { AccessTokenService } from 'src/auth/services/access-token.service';
 import { SignupDto } from 'src/auth/dto/signup.dto';
 import { UpdateProfileDto } from 'src/auth/dto/update-profile.dto';
 import { ChangePasswordDto } from 'src/auth/dto/change-password';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class AuthService {
@@ -26,6 +27,7 @@ export class AuthService {
 		private readonly usersModel: Model<User>,
 		private accessTokenService: AccessTokenService,
 		private refreshTokenService: RefreshTokenService,
+		private mailService: MailService,
 	) { }
 
 	async findById(id: string): Promise<User> {
@@ -47,6 +49,8 @@ export class AuthService {
 			password: await hash(password, 10),
 			userId: newUser.id,
 		});
+
+		await this.mailService.sendUserConfirmation(newUser, 'OTP');
 
 		return newUser;
 	}
@@ -81,7 +85,7 @@ export class AuthService {
 		};
 	}
 
-	async login(dto: CredentialsDto): Promise<ResLoginObject> {
+	async login(dto: CredentialsDto, dataExtra = {}): Promise<ResLoginObject> {
 		const user = await this.verifyCredentials(dto);
 
 		const token = await this.accessTokenService.generateToken(user);
@@ -92,7 +96,7 @@ export class AuthService {
 			user,
 			backendTokens: {
 				accessToken: token,
-				refreshToken: await this.refreshTokenService.generateToken(user.id, token),
+				refreshToken: await this.refreshTokenService.generateToken(user.id, token, dataExtra),
 				expiresIn: process.env.TOKEN_EXPIRES_IN,
 			},
 		};

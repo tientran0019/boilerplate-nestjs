@@ -12,6 +12,8 @@ import { AppService } from 'src/app.service';
 import { CoreModule } from 'src/core/core.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { ArticlesModule } from './articles/articles.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
 	imports: [
@@ -33,8 +35,10 @@ import { UsersModule } from './users/users.module';
 			limit: 100,
 		}]),
 		CoreModule,
+		MailModule,
 		UsersModule,
 		AuthModule,
+		ArticlesModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],

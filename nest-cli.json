@@ -4,6 +4,10 @@
 	"language": "ts",
 	"sourceRoot": "src",
 	"compilerOptions": {
+		"assets": [
+			"mail/templates/**/*"
+		],
+		"watchAssets": true,
 		"deleteOutDir": true,
 		"plugins": [
 			{
