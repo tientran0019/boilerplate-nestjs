@@ -14,6 +14,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ArticlesModule } from './articles/articles.module';
 import { MailModule } from './mail/mail.module';
+import { OtpModule } from './otp/otp.module';
 
 @Module({
 	imports: [
@@ -39,6 +40,7 @@ import { MailModule } from './mail/mail.module';
 		UsersModule,
 		AuthModule,
 		ArticlesModule,
+		OtpModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],

@@ -1,5 +1,4 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { ApiProperty } from '@nestjs/swagger';
 import { Document, HydratedDocument } from 'mongoose';
 import { UserRole, UserStatus } from 'src/constants/user.enum';
 
@@ -18,10 +17,6 @@ export class User extends Document {
 	@Prop()
 	updatedAt: number;
 
-	@ApiProperty({
-		example: 'Maine Coon',
-		description: 'The breed of the Cat',
-	})
 	@Prop({
 		required: true,
 		index: true,
