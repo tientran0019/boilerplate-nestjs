@@ -1,3 +1,14 @@
+/** --------------------------------------------------------
+* Author Tien Tran
+* Email tientran0019@gmail.com
+* Phone 0972970075
+*
+* Created: 2023-11-23 23:23:21
+
+* Last updated on: 2023-11-23 23:23:21
+* Last updated by: Tien Tran
+*------------------------------------------------------- */
+
 import { IsEmail, IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
 
 export class CreateUserDto {

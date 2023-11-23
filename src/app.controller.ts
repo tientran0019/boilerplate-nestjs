@@ -18,10 +18,14 @@ import { UserRole } from './constants/user.enum';
 import { Public } from './auth/decorators/public.decorator';
 import { Authorize } from './auth/decorators/authorize.decorator';
 import { Permissions, RequestWithAuth } from './auth/types';
+import { OtpService } from './otp/otp.service';
 
 @Controller()
 export class AppController {
-	constructor(private readonly appService: AppService) { }
+	constructor(
+		private readonly appService: AppService,
+		private readonly otpService: OtpService,
+	) { }
 
 	@Get()
 	// @Public()
@@ -34,6 +38,12 @@ export class AppController {
 		// Reply with a greeting, the current time, the url, and request headers
 		// @ts-ignore
 		console.log('DEV ~ file: app.controller.ts:42 ~ AppController ~ getHello ~ req.raw:', acceptLanguage);
+
+		this.otpService.send({
+			email: 'tientran0019@gmail.com',
+			action: 'TEST',
+			userName: 'Tiến',
+		});
 
 		return {
 			greeting: this.appService.getHello(),

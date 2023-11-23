@@ -1,3 +1,14 @@
+/** --------------------------------------------------------
+* Author Tien Tran
+* Email tientran0019@gmail.com
+* Phone 0972970075
+*
+* Created: 2023-11-23 23:23:00
+
+* Last updated on: 2023-11-23 23:23:00
+* Last updated by: Tien Tran
+*------------------------------------------------------- */
+
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, HydratedDocument } from 'mongoose';
 import { UserRole, UserStatus } from 'src/constants/user.enum';

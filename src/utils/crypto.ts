@@ -9,7 +9,7 @@
 * Last updated by: Tien Tran
 *------------------------------------------------------- */
 
-import CryptoJS from 'crypto-js';
+import * as CryptoJS from 'crypto-js';
 
 /**
  * The `encrypt` function encrypts a payload using a secret key and returns the encrypted result as a

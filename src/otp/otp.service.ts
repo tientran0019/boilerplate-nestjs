@@ -1,7 +1,7 @@
 import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { AnyObject, Model, ObjectId } from 'mongoose';
-import otpGenerator from 'otp-generator';
+import { Model, ObjectId } from 'mongoose';
+import * as otpGenerator from 'otp-generator';
 import { MailService } from 'src/mail/mail.service';
 import { decrypt, encrypt } from 'src/utils/crypto';
 import { Otp } from './schemas/otp.schema';
@@ -12,10 +12,10 @@ export interface OtpObject {
 }
 
 export interface OtpOptions {
-	digits?: boolean,
-	lowerCaseAlphabets?: boolean,
-	upperCaseAlphabets?: boolean,
-	specialChars?: boolean,
+    digits?: boolean;
+    lowerCaseAlphabets?: boolean;
+    upperCaseAlphabets?: boolean;
+    specialChars?: boolean;
 }
 
 export interface OtpPayload {
@@ -52,18 +52,15 @@ export class OtpService {
 		return payload as OtpPayload;
 	};
 
-	async send(contactData: AnyObject): Promise<{ verificationKey: string }> {
-		const { email, phoneNumber, action } = contactData;
+	async send(payload: { email: string, action: string, userName: string }): Promise<{ verificationKey: string }> {
+		const { email, action } = payload;
 
 		try {
 			if (!action) {
 				throw new Error('Action type not provided');
 			}
-			if (!email && !phoneNumber) {
-				throw new Error('Email and Phone number not provided');
-			}
-			if (email && phoneNumber) {
-				throw new Error('OTP can only be sent via email or phone number');
+			if (!email) {
+				throw new Error('Email not provided');
 			}
 
 			// Generate OTP
@@ -78,7 +75,7 @@ export class OtpService {
 			// Create details object containing the phone number and otp id
 			const details: OtpPayload = {
 				createdAt: otpInstance.createdAt,
-				check: email || phoneNumber,
+				check: email,
 				action,
 				otpId: otpInstance.id,
 			};
@@ -87,7 +84,10 @@ export class OtpService {
 			const verificationKey = await this.generateVerificationKey(details);
 
 			if (email) {
-				await this.mailService.sendEmailOtp(email, otpData);
+				await this.mailService.sendEmailOtp(email, {
+					...otpData,
+					...payload,
+				});
 			}
 
 			return { verificationKey };

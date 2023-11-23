@@ -50,7 +50,7 @@ export class AuthService {
 			userId: newUser.id,
 		});
 
-		await this.mailService.sendUserConfirmation(newUser, 'OTP');
+		await this.mailService.sendUserVerification(newUser, 'OTP');
 
 		return newUser;
 	}
