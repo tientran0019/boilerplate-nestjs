@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 import { MongooseModule } from '@nestjs/mongoose';
 
@@ -15,6 +15,7 @@ import { UsersModule } from './users/users.module';
 import { ArticlesModule } from './articles/articles.module';
 import { MailModule } from './mail/mail.module';
 import { OtpModule } from './otp/otp.module';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
 	imports: [
@@ -31,10 +32,23 @@ import { OtpModule } from './otp/otp.module';
 			database: process.env.REDIS_DATABASE,
 		}),
 		MongooseModule.forRoot(process.env.MONGO_URL),
-		ThrottlerModule.forRoot([{
-			ttl: 60000,
-			limit: 100,
-		}]),
+		ThrottlerModule.forRoot([
+			{
+				name: 'short',
+				ttl: 1000,
+				limit: 3,
+			},
+			{
+				name: 'medium',
+				ttl: 10000,
+				limit: 100,
+			},
+			{
+				name: 'long',
+				ttl: 60000,
+				limit: 1000,
+			},
+		]),
 		CoreModule,
 		MailModule,
 		UsersModule,
@@ -43,6 +57,12 @@ import { OtpModule } from './otp/otp.module';
 		ArticlesModule,
 	],
 	controllers: [AppController],
-	providers: [AppService],
+	providers: [
+		AppService,
+		{
+			provide: APP_GUARD,
+			useClass: ThrottlerGuard,
+		},
+	],
 })
 export class AppModule { }

@@ -5,11 +5,11 @@ import { InjectModel } from '@nestjs/mongoose';
 import { RefreshToken } from '../schemas/refresh-token.schema';
 import { Model } from 'mongoose';
 import { AccessTokenService } from './access-token.service';
-import { TokenObject } from '../types';
+import { ClientInfo, TokenObject } from '../types';
 import { FastifyRequest } from 'fastify';
 import { User } from 'src/users/schemas/user.schema';
 import async from 'async';
-import { UserStatus } from 'src/constants/user.enum';
+import { UserStatus } from 'src/users/user.enum';
 
 @Injectable()
 export class RefreshTokenService {
@@ -29,7 +29,7 @@ export class RefreshTokenService {
 	async generateToken(
 		userId: string,
 		token: string,
-		dataExtra: object = {},
+		clientInfo: ClientInfo,
 	): Promise<string> {
 		const data = {
 			token: uuidv4(),
@@ -41,7 +41,7 @@ export class RefreshTokenService {
 		});
 
 		await this.refreshTokenModel.create({
-			...dataExtra,
+			...clientInfo,
 			userId,
 			refreshToken,
 			currentToken: token,
@@ -54,7 +54,7 @@ export class RefreshTokenService {
 	 * Refresh the access token bound with the given refresh token.
 	 */
 
-	async refreshToken(refreshToken: string): Promise<TokenObject> {
+	async refreshToken(refreshToken: string, clientInfo: ClientInfo): Promise<TokenObject> {
 		try {
 			if (!refreshToken) {
 				throw new Error(
@@ -63,6 +63,13 @@ export class RefreshTokenService {
 			}
 
 			const userRefreshData = await this.verifyToken(refreshToken);
+
+			// compare the ip or useragent attributes in the clientInfo object to the ip in the database
+			if (clientInfo.ip !== userRefreshData.ip || clientInfo.useragent !== userRefreshData.userAgent) {
+				// Force logout of all sessions of this user if the client info different from the client info that was stored in db when the user login
+				this.revokeAllToken(userRefreshData.userId.toString());
+				throw new Error('Client is invalid');
+			}
 
 			await this.revokeCurrentToken(userRefreshData.currentToken!);
 
@@ -79,7 +86,8 @@ export class RefreshTokenService {
 
 			try {
 				// store token to refresh token
-				await this.refreshTokenModel.findOneAndUpdate({ refreshToken }, { currentToken: token });
+				userRefreshData.currentToken = token;
+				await userRefreshData.save();
 			} catch (e) {
 				// ignore
 			}
@@ -114,7 +122,10 @@ export class RefreshTokenService {
 
 			await this.revokeCurrentToken(userRefreshData.currentToken!);
 
-			await this.refreshTokenModel.findOneAndUpdate({ refreshToken }, { revoked: true, revokedAt: +new Date() });
+			// await this.refreshTokenModel.findOneAndUpdate({ refreshToken }, { revoked: true, revokedAt: +new Date() });
+			userRefreshData.revoked = true;
+			userRefreshData.revokedAt = +new Date();
+			await userRefreshData.save();
 		} catch (error) {
 			// ignore
 		}

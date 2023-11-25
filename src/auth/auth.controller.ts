@@ -25,25 +25,27 @@ import {
 } from '@nestjs/swagger';
 import { VerifyDto } from './dto/verify.dto';
 import { VerifyRequestDto } from './dto/verify-request.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ObjectId } from 'mongoose';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { Throttle } from '@nestjs/throttler';
 
 @ApiTags('Auth')
+@Throttle({ default: { limit: 10, ttl: 60000 } })
 @Controller('auth')
 export class AuthController {
 	constructor(
 		private authService: AuthService,
 	) { }
 
+	@Throttle({ default: { limit: 5, ttl: 60000 } })
 	@ApiOperation({ summary: 'Login User' })
 	@Authorize({
 		allowedRoles: [Permissions.UNAUTHENTICATED],
 	})
 	@Post('login')
 	async login(@Request() req, @Body() dto: CredentialsDto): Promise<ResLoginObject> {
-		return await this.authService.login(dto, {
-			useragent: req.headers['user-agent'],
-			clientId: req.headers['x-client-id'],
-			ip: req.ip,
-		});
+		return await this.authService.login(dto, req.clientInfo);
 	}
 
 	@ApiOperation({ summary: 'Request verification via Email or Phone number' })
@@ -59,6 +61,7 @@ export class AuthController {
 		};
 	}
 
+	@Throttle({ default: { limit: 3, ttl: 60000 } })
 	@ApiOperation({ summary: 'Verify the Email or Phone number' })
 	@Authorize({
 		allowedRoles: [Permissions.EVERYONE],
@@ -68,10 +71,11 @@ export class AuthController {
 		return await this.authService.verify(dto);
 	}
 
+	@ApiOperation({ summary: 'Get current user profile' })
 	@ApiBearerAuth()
 	@ApiResponse({
 		status: 200,
-		description: 'The found record',
+		// description: 'The found record',
 		type: SignupDto,
 	})
 	@Authorize({
@@ -88,10 +92,11 @@ export class AuthController {
 		return user;
 	}
 
+	@ApiOperation({ summary: 'Update current user profile' })
 	@ApiBearerAuth()
 	@ApiResponse({
 		status: 200,
-		description: 'The found record',
+		// description: 'The found record',
 		type: SignupDto,
 	})
 	@Authorize({
@@ -117,7 +122,7 @@ export class AuthController {
 	@ApiOperation({ summary: 'User signup' })
 	@ApiResponse({
 		status: 200,
-		description: 'The found record',
+		// description: 'The found record',
 		type: SignupDto,
 	})
 	@Authorize({
@@ -128,12 +133,34 @@ export class AuthController {
 		return await this.authService.signup(dto);
 	}
 
+	@Throttle({ default: { limit: 3, ttl: 60000 } })
+	@ApiOperation({ summary: 'Forgot password' })
+	@Authorize({
+		allowedRoles: [Permissions.UNAUTHENTICATED],
+	})
+	@Post('forgot-password')
+	async forgotPassword(@Body() dto: ForgotPasswordDto): Promise<{ verificationKey: string; check: ObjectId; }> {
+		return await this.authService.forgotPassword(dto);
+	}
+
+	@ApiOperation({ summary: 'Reset password' })
+	@Authorize({
+		allowedRoles: [Permissions.UNAUTHENTICATED],
+	})
+	@Patch('reset-password')
+	async resetPassword(@Body() dto: ResetPasswordDto): Promise<{ success: boolean; }> {
+		return await this.authService.resetPassword(dto);
+	}
+
+	@Throttle({ default: { limit: 3, ttl: 60000 } })
+	@ApiOperation({ summary: 'Refresh the access token by refresh token' })
 	@UseGuards(RefreshJwtGuard)
 	@Post('refresh')
 	async refreshToken(@Request() req): Promise<TokenObject> {
-		return await this.authService.refreshToken(req);
+		return await this.authService.refreshToken(req, req.clientInfo);
 	}
 
+	@ApiOperation({ summary: 'Logout' })
 	@UseGuards(RefreshJwtGuard)
 	@Post('logout')
 	async logout(@Request() req): Promise<object> {

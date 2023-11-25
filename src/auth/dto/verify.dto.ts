@@ -1,10 +1,10 @@
 import { IsEnum, IsMongoId, IsNotEmpty, IsString } from 'class-validator';
-import { UserVerificationProviders } from 'src/constants/user.enum';
+import { UserVerificationProviders } from 'src/users/user.enum';
 
 export class VerifyDto {
 	@IsNotEmpty()
 	@IsMongoId()
-	readonly userId: string;
+	readonly check: string;
 
 	@IsNotEmpty()
 	@IsString()

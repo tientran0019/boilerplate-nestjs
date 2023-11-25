@@ -7,6 +7,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { AccessTokenService } from '../services/access-token.service';
+import { ClientInfo } from '../types';
 
 @Injectable()
 export class AuthenticateGuard implements CanActivate {
@@ -29,9 +30,20 @@ export class AuthenticateGuard implements CanActivate {
 		const request = context.switchToHttp().getRequest();
 		const token = this.accessTokenService.extractTokenFromHeader(request);
 
+		const clientInfo: ClientInfo = {
+			useragent: request.headers['user-agent'],
+			clientId: request.headers['x-client-id'],
+			address: request.headers['cf-ipcountry'],
+			location: [request.headers['x-lat'], request.headers['x-long']],
+			ip: request.ip,
+		};
+
+		request['clientInfo'] = clientInfo;
+
 		if (!token) {
 			throw new UnauthorizedException();
 		}
+
 		try {
 			const payload = await this.accessTokenService.verifyToken(token);
 

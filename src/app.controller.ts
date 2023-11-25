@@ -14,19 +14,19 @@ import { AppService } from './app.service';
 
 import { FastifyRequest } from 'fastify';
 import { Roles } from './auth/decorators/roles.decorator';
-import { UserRole } from './constants/user.enum';
+import { UserRole } from './users/user.enum';
 import { Public } from './auth/decorators/public.decorator';
 import { Authorize } from './auth/decorators/authorize.decorator';
 import { Permissions, RequestWithAuth } from './auth/types';
-import { OtpService } from './otp/otp.service';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller()
 export class AppController {
 	constructor(
 		private readonly appService: AppService,
-		private readonly otpService: OtpService,
 	) { }
 
+	@Throttle({ default: { limit: 5, ttl: 60000 } })
 	@Get()
 	// @Public()
 	// @Authorize({
@@ -37,7 +37,8 @@ export class AppController {
 		// const language = req.headers['accept-language'].split(',');
 		// Reply with a greeting, the current time, the url, and request headers
 		// @ts-ignore
-		console.log('DEV ~ file: app.controller.ts:42 ~ AppController ~ getHello ~ req.raw:', acceptLanguage);
+		// console.log('DEV ~ file: app.controller.ts:42 ~ AppController ~ getHello ~ req.raw:', acceptLanguage);
+		// console.log('DEV ~ file: auth.controller.ts:42 ~ AuthController ~ login ~ req:', req.clientInfo);
 
 		return {
 			greeting: this.appService.getHello(),

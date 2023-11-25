@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AUTHORIZE_KEY } from '../decorators/authorize.decorator';
-import { AuthorizationMetadata, Permissions, UserProfileForToken } from '../types';
+import { AuthorizationMetadata, ClientInfo, Permissions, UserProfileForToken } from '../types';
 import { AccessTokenService } from '../services/access-token.service';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
@@ -32,6 +32,17 @@ export class AuthorizeGuard implements CanActivate {
 			// so that we can access it in our route handlers
 			request['currentUser'] = currentUser;
 		}
+
+		const clientInfo: ClientInfo = {
+			useragent: request.headers['user-agent'],
+			clientId: request.headers['x-client-id'],
+			address: request.headers['cf-ipcountry'],
+			location: [request.headers['x-lat'], request.headers['x-long']],
+			ip: request.ip,
+		};
+
+		request['clientInfo'] = clientInfo;
+
 
 		const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
 			context.getHandler(),

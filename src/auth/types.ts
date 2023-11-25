@@ -50,16 +50,25 @@ export interface UserProfileForToken {
  * Authorization metadata supplied via `@authorize` decorator
  */
 export interface AuthorizationMetadata {
-    /**
-     * Roles that are allowed access
-     */
-    allowedRoles?: string[];
-    /**
-     * Roles that are denied access
-     */
-    deniedRoles?: string[];
+	/**
+	 * Roles that are allowed access
+	 */
+	allowedRoles?: string[];
+	/**
+	 * Roles that are denied access
+	 */
+	deniedRoles?: string[];
 }
 
 export interface RequestWithAuth extends FastifyRequest {
-	currentUser: UserProfileForToken
+	currentUser: UserProfileForToken;
+	clientInfo: ClientInfo;
+}
+
+export interface ClientInfo {
+	ip: string;
+	useragent: string;
+	location?: number[];
+	clientId?: string;
+	address?: string;
 }

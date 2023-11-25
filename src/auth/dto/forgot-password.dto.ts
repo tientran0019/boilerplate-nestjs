@@ -1,9 +1,9 @@
 import { IsNotEmpty, MinLength, MaxLength, IsEmail, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class CreateForgotPasswordDto {
+export class ForgotPasswordDto {
 	@ApiProperty({
-		example: 'pejman@gmail.com',
+		example: 'email@example.com',
 		description: 'The email of the User',
 		format: 'email',
 		uniqueItems: true,

@@ -1,21 +1,10 @@
-import { IsNotEmpty, MinLength, MaxLength, IsEmail, IsString } from 'class-validator';
+import { IsNotEmpty, MinLength, MaxLength, IsString, IsMongoId } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class ResetPasswordDto {
-	@ApiProperty({
-		example: 'pejman@gmail.com',
-		description: 'The email of the User',
-		format: 'email',
-		uniqueItems: true,
-		minLength: 5,
-		maxLength: 255,
-	})
 	@IsNotEmpty()
-	@IsString()
-	@MinLength(5)
-	@MaxLength(255)
-	@IsEmail()
-	readonly email: string;
+	@IsMongoId()
+	readonly check: string;
 
 	@ApiProperty({
 		example: 'secret password change me!',
@@ -29,4 +18,12 @@ export class ResetPasswordDto {
 	@MinLength(5)
 	@MaxLength(1024)
 	readonly password: string;
+
+	@IsNotEmpty()
+	@IsString()
+	readonly verificationKey: string;
+
+	@IsNotEmpty()
+	@IsString()
+	readonly otp: string;
 }

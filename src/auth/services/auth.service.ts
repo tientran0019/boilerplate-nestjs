@@ -2,11 +2,11 @@ import { BadRequestException, ConflictException, Injectable, InternalServerError
 import { CredentialsDto } from 'src/auth/dto/credentials.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { FastifyRequest } from 'fastify';
-import { Model } from 'mongoose';
+import { Model, ObjectId } from 'mongoose';
 import { compare, hash } from 'bcrypt';
 
-import { UserStatus, UserVerificationProviders } from 'src/constants/user.enum';
-import { ResLoginObject, TokenObject } from 'src/auth/types';
+import { UserStatus, UserVerificationProviders } from 'src/users/user.enum';
+import { ClientInfo, ResLoginObject, TokenObject } from 'src/auth/types';
 import { UserCredentials } from 'src/auth/schemas/user-credentials.schema';
 import { User } from 'src/users/schemas/user.schema';
 
@@ -18,9 +18,11 @@ import { UpdateProfileDto } from 'src/auth/dto/update-profile.dto';
 import { ChangePasswordDto } from 'src/auth/dto/change-password';
 import { MailService } from 'src/mail/mail.service';
 import { OtpObject, OtpService } from 'src/otp/otp.service';
-import { OtpActions } from 'src/constants/otp.enum';
+import { OtpActions } from 'src/otp/otp.enum';
 import { VerifyDto } from '../dto/verify.dto';
 import { VerifyRequestDto } from '../dto/verify-request.dto';
+import { ForgotPasswordDto } from '../dto/forgot-password.dto';
+import { ResetPasswordDto } from '../dto/reset-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -58,7 +60,7 @@ export class AuthService {
 		return newUser;
 	}
 
-	async login(dto: CredentialsDto, dataExtra = {}): Promise<ResLoginObject> {
+	async login(dto: CredentialsDto, clientInfo: ClientInfo): Promise<ResLoginObject> {
 		const user = await this.verifyCredentials(dto);
 
 		this.verifyUserStatus(user);
@@ -69,7 +71,7 @@ export class AuthService {
 			if (!user.verifiedBy.includes(type)) {
 				const otpData: OtpObject = await this.requestVerification({
 					type,
-					userId: user.id,
+					check: user.id,
 				});
 
 				if (!otpData) {
@@ -91,16 +93,16 @@ export class AuthService {
 			user,
 			backendTokens: {
 				accessToken: token,
-				refreshToken: await this.refreshTokenService.generateToken(user.id, token, dataExtra),
+				refreshToken: await this.refreshTokenService.generateToken(user.id, token, clientInfo),
 				expiresIn: process.env.TOKEN_EXPIRES_IN,
 			},
 		};
 	}
 
 	async requestVerification(dto: VerifyRequestDto): Promise<OtpObject> {
-		const { type, userId } = dto;
+		const { type, check } = dto;
 
-		const user = await this.usersModel.findById(userId);
+		const user = await this.usersModel.findById(check);
 
 		this.verifyUserStatus(user);
 
@@ -113,7 +115,7 @@ export class AuthService {
 
 		const action = type === UserVerificationProviders.PHONE ? OtpActions.VERIFY_PHONE : OtpActions.VERIFY_EMAIL;
 
-		const otpData = await this.otpService.generateOtp({ check: userId, action });
+		const otpData = await this.otpService.generateOtp({ check, action });
 
 		if (type === UserVerificationProviders.PHONE) {
 			// TODO: send OTP to verification via phone here
@@ -132,7 +134,7 @@ export class AuthService {
 	async verify(dto: VerifyDto): Promise<User> {
 		const action = dto.type === UserVerificationProviders.PHONE ? OtpActions.VERIFY_PHONE : OtpActions.VERIFY_EMAIL;
 
-		const user = await this.usersModel.findById(dto.userId);
+		const user = await this.usersModel.findById(dto.check);
 
 		this.verifyUserStatus(user);
 
@@ -145,7 +147,7 @@ export class AuthService {
 
 		await this.otpService.verifyOtp({
 			action,
-			check: dto.userId,
+			check: dto.check,
 			otp: dto.otp,
 			verificationKey: dto.verificationKey,
 		});
@@ -226,14 +228,14 @@ export class AuthService {
 		return foundUser;
 	}
 
-	async refreshToken(req: FastifyRequest): Promise<TokenObject> {
+	async refreshToken(req: FastifyRequest, clientInfo: ClientInfo): Promise<TokenObject> {
 		const refreshToken = this.refreshTokenService.extractTokenFromHeader(req);
 
 		if (!refreshToken) {
 			throw new UnauthorizedException(`Error verifying token : Token not found`);
 		}
 
-		return await this.refreshTokenService.refreshToken(refreshToken);
+		return await this.refreshTokenService.refreshToken(refreshToken, clientInfo);
 	}
 
 	async logout(req: FastifyRequest): Promise<object> {
@@ -257,7 +259,7 @@ export class AuthService {
 		}
 	}
 
-	async changePassword(userId: string, data: ChangePasswordDto): Promise<object> {
+	async changePassword(userId: string, data: ChangePasswordDto): Promise<{ success: boolean }> {
 		if (data.newPassword === data.oldPassword) {
 			throw new BadRequestException('The old password must be different from the New password');
 		}
@@ -281,6 +283,49 @@ export class AuthService {
 		await credentialsFound.save();
 
 		await this.refreshTokenService.revokeAllToken(userId);
+
+		return {
+			success: true,
+		};
+	}
+
+	async forgotPassword(dto: ForgotPasswordDto): Promise<{ verificationKey: string, check: ObjectId }> {
+		const { email } = dto;
+
+		const user = await this.usersModel.findOne({ email });
+
+		this.verifyUserStatus(user);
+
+		if (!user) {
+			throw new BadRequestException('User not found');
+		}
+
+		const otpData = await this.otpService.generateOtp({ check: user.id, action: OtpActions.FORGOT_PASSWORD });
+
+		await this.mailService.sendUserResetPassword(email, {
+			ttl: otpData.ttl,
+			code: otpData.code,
+		});
+
+		return {
+			verificationKey: otpData.verificationKey,
+			check: user.id,
+		};
+	}
+
+	async resetPassword(dto: ResetPasswordDto): Promise<{ success: boolean }> {
+		await this.otpService.verifyOtp({
+			action: OtpActions.FORGOT_PASSWORD,
+			check: dto.check,
+			otp: dto.otp,
+			verificationKey: dto.verificationKey,
+		});
+
+		const password = await hash(dto.password, 10);
+
+		await this.userCredentialsModel.findByIdAndUpdate(dto.check, { password });
+
+		await this.refreshTokenService.revokeAllToken(dto.check);
 
 		return {
 			success: true,

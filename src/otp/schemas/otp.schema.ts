@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-import { OtpActions } from 'src/constants/otp.enum';
+import { OtpActions } from 'src/otp/otp.enum';
 
 export type OtpDocument = HydratedDocument<Otp>;
 

@@ -12,7 +12,6 @@
 import { ISendMailOptions, MailerService } from '@nestjs-modules/mailer';
 import { Injectable } from '@nestjs/common';
 import { SentMessageInfo } from 'nodemailer';
-import { User } from 'src/users/schemas/user.schema';
 import convertMsToMinutesSeconds from 'src/utils/msToMinutes';
 
 const getEmailByEnv = (emails: string | string[]): string | string[] => {
@@ -35,7 +34,7 @@ export class MailService {
 		return await this.mailerService.sendMail({
 			to: getEmailByEnv(email),
 			// from: '"Support Team" <support@example.com>', // override default from
-			subject: 'Welcome to Nice App! Confirm your Email',
+			subject: 'Welcome to Nestjs App! Confirm your Email',
 			template: './verification', // `.hbs` extension is appended automatically
 			context: { // ✏️ filling curly brackets with content
 				ttl: convertMsToMinutesSeconds(otpData.ttl, false),
@@ -56,17 +55,14 @@ export class MailService {
 		});
 	}
 
-	async sendUserResetPassword(user: User, token: string): Promise<SentMessageInfo> {
-		const url = `https://zellosoft.com/auth/confirm?token=${token}`;
-
+	async sendUserResetPassword(email: string, otpData: { code: string, ttl: string | number }): Promise<SentMessageInfo> {
 		return await this.mailerService.sendMail({
-			to: getEmailByEnv(user.email),
-			// from: '"Support Team" <support@example.com>', // override default from
+			to: getEmailByEnv(email),
 			subject: 'Password reset',
-			template: './reset-password', // `.hbs` extension is appended automatically
-			context: { // ✏️ filling curly brackets with content
-				name: user.fullName,
-				url,
+			template: './reset-password',
+			context: {
+				ttl: convertMsToMinutesSeconds(otpData.ttl, false),
+				code: otpData.code,
 			},
 		});
 	}

@@ -15,7 +15,7 @@ import { User } from './schemas/user.schema';
 // import omit from 'tily/object/omit';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { UserStatus } from 'src/constants/user.enum';
+import { UserStatus } from 'src/users/user.enum';
 
 @Injectable()
 export class UsersService {

@@ -4,6 +4,7 @@ import { Model, ObjectId } from 'mongoose';
 import * as otpGenerator from 'otp-generator';
 import { decrypt, encrypt } from 'src/utils/crypto';
 import { Otp } from './schemas/otp.schema';
+import { OtpActions } from 'src/otp/otp.enum';
 
 export interface OtpOptions {
 	digits?: boolean;
@@ -15,7 +16,7 @@ export interface OtpOptions {
 export interface OtpPayload {
 	createdAt: number,
 	check: string,
-	action: string,
+	action: OtpActions,
 	otpId: ObjectId,
 };
 
@@ -23,7 +24,7 @@ export interface VerificationPayload {
 	verificationKey: string,
 	otp: string,
 	check: string,
-	action: string,
+	action: OtpActions,
 };
 
 export interface OtpObject {
@@ -56,7 +57,7 @@ export class OtpService {
 		return payload as OtpPayload;
 	};
 
-	async generateOtp(payload: { check: string, action: string }): Promise<OtpObject> {
+	async generateOtp(payload: { check: string, action: OtpActions }): Promise<OtpObject> {
 		const { check, action } = payload;
 
 		if (!action) {
