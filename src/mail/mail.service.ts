@@ -31,22 +31,20 @@ export class MailService {
 		return await this.mailerService.sendMail(sendMailOptions);
 	}
 
-	async sendUserVerification(user: User, token: string): Promise<SentMessageInfo> {
-		const url = `https://zellosoft.com/auth/confirm?token=${token}`;
-
+	async sendUserVerification(email: string, otpData: { code: string, ttl: string | number }): Promise<SentMessageInfo> {
 		return await this.mailerService.sendMail({
-			to: getEmailByEnv(user.email),
+			to: getEmailByEnv(email),
 			// from: '"Support Team" <support@example.com>', // override default from
 			subject: 'Welcome to Nice App! Confirm your Email',
 			template: './verification', // `.hbs` extension is appended automatically
 			context: { // ✏️ filling curly brackets with content
-				userName: user.fullName,
-				url,
+				ttl: convertMsToMinutesSeconds(otpData.ttl, false),
+				code: otpData.code,
 			},
 		});
 	}
 
-	async sendEmailOtp(email: string, otpData: { code: string, ttl: string | number, userName: string}): Promise<SentMessageInfo> {
+	async sendEmailOtp(email: string, otpData: { code: string, ttl: string | number }): Promise<SentMessageInfo> {
 		return await this.mailerService.sendMail({
 			to: getEmailByEnv(email),
 			subject: 'Verify your identity',
@@ -54,7 +52,6 @@ export class MailService {
 			context: { // ✏️ filling curly brackets with content
 				ttl: convertMsToMinutesSeconds(otpData.ttl, false),
 				code: otpData.code,
-				userName: otpData.userName,
 			},
 		});
 	}

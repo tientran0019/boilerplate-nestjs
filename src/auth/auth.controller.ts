@@ -23,6 +23,8 @@ import {
 	ApiResponse,
 	ApiTags,
 } from '@nestjs/swagger';
+import { VerifyDto } from './dto/verify.dto';
+import { VerifyRequestDto } from './dto/verify-request.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -42,6 +44,28 @@ export class AuthController {
 			clientId: req.headers['x-client-id'],
 			ip: req.ip,
 		});
+	}
+
+	@ApiOperation({ summary: 'Request verification via Email or Phone number' })
+	@Authorize({
+		allowedRoles: [Permissions.EVERYONE],
+	})
+	@Post('request-verification')
+	async requestVerification(@Body() dto: VerifyRequestDto): Promise<{ verificationKey: string }> {
+		const otpData = await this.authService.requestVerification(dto);
+
+		return {
+			verificationKey: otpData.verificationKey,
+		};
+	}
+
+	@ApiOperation({ summary: 'Verify the Email or Phone number' })
+	@Authorize({
+		allowedRoles: [Permissions.EVERYONE],
+	})
+	@Post('verify')
+	async verify(@Body() dto: VerifyDto): Promise<User> {
+		return await this.authService.verify(dto);
 	}
 
 	@ApiBearerAuth()

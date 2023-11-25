@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
+import { OtpActions } from 'src/constants/otp.enum';
 
 export type OtpDocument = HydratedDocument<Otp>;
 
@@ -30,7 +31,7 @@ export class Otp {
 	code: string;
 
 	@Prop()
-	action: string;
+	action: OtpActions;
 
 	@Prop({
 		default: false,

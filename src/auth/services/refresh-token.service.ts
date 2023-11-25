@@ -9,6 +9,7 @@ import { TokenObject } from '../types';
 import { FastifyRequest } from 'fastify';
 import { User } from 'src/users/schemas/user.schema';
 import async from 'async';
+import { UserStatus } from 'src/constants/user.enum';
 
 @Injectable()
 export class RefreshTokenService {
@@ -56,7 +57,7 @@ export class RefreshTokenService {
 	async refreshToken(refreshToken: string): Promise<TokenObject> {
 		try {
 			if (!refreshToken) {
-				throw new UnauthorizedException(
+				throw new Error(
 					`Error verifying token : 'refresh token' is null`,
 				);
 			}
@@ -68,6 +69,10 @@ export class RefreshTokenService {
 			const user = await this.usersModel.findById(
 				userRefreshData.userId,
 			);
+
+			if (user.status !== UserStatus.ACTIVE) {
+				throw new Error('User is inactive');
+			}
 
 			// create a JSON Web Token based on the user profile
 			const token = await this.accessTokenService.generateToken(user);
@@ -145,13 +150,13 @@ export class RefreshTokenService {
 			const userRefreshData = await this.refreshTokenModel.findOne({ refreshToken });
 
 			if (!userRefreshData) {
-				throw new UnauthorizedException(
+				throw new Error(
 					`Error verifying token : Invalid Token`,
 				);
 			}
 
 			if (userRefreshData.revoked) {
-				throw new UnauthorizedException(
+				throw new Error(
 					`Error verifying token : Token is revoked`,
 				);
 			}

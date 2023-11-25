@@ -6,6 +6,12 @@ export enum UserRole {
 
 export enum UserStatus {
 	ACTIVE = 'ACTIVE',
-	PADDING = 'PADDING',
+	// PADDING = 'PADDING',
 	INACTIVE = 'INACTIVE',
+}
+
+export enum UserVerificationProviders {
+	EMAIL = 'EMAIL',
+	PHONE = 'PHONE',
+	// GG_AUTH = 'GG_AUTH', // TODO for the Authenticator app providing by Google
 }

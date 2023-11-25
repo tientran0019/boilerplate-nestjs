@@ -39,12 +39,6 @@ export class AppController {
 		// @ts-ignore
 		console.log('DEV ~ file: app.controller.ts:42 ~ AppController ~ getHello ~ req.raw:', acceptLanguage);
 
-		this.otpService.send({
-			email: 'tientran0019@gmail.com',
-			action: 'TEST',
-			userName: 'Tiến',
-		});
-
 		return {
 			greeting: this.appService.getHello(),
 			date: new Date(),

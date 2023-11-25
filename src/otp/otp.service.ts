@@ -1,21 +1,15 @@
-import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, ObjectId } from 'mongoose';
 import * as otpGenerator from 'otp-generator';
-import { MailService } from 'src/mail/mail.service';
 import { decrypt, encrypt } from 'src/utils/crypto';
 import { Otp } from './schemas/otp.schema';
 
-export interface OtpObject {
-	code: string,
-	ttl: string | number,
-}
-
 export interface OtpOptions {
-    digits?: boolean;
-    lowerCaseAlphabets?: boolean;
-    upperCaseAlphabets?: boolean;
-    specialChars?: boolean;
+	digits?: boolean;
+	lowerCaseAlphabets?: boolean;
+	upperCaseAlphabets?: boolean;
+	specialChars?: boolean;
 }
 
 export interface OtpPayload {
@@ -25,79 +19,93 @@ export interface OtpPayload {
 	otpId: ObjectId,
 };
 
+export interface VerificationPayload {
+	verificationKey: string,
+	otp: string,
+	check: string,
+	action: string,
+};
+
+export interface OtpObject {
+	verificationKey: string,
+	code: string,
+	ttl: string | number,
+	data: OtpPayload,
+}
+
 @Injectable()
 export class OtpService {
 	constructor(
 		@InjectModel(Otp.name)
 		private readonly otpModel: Model<Otp>,
-		private mailService: MailService,
 	) { }
 
-	generateOtp = (length: number = 6, options: OtpOptions = { upperCaseAlphabets: false, lowerCaseAlphabets: false, specialChars: false }): OtpObject => {
-		return {
-			code: otpGenerator.generate(length, options),
-			ttl: process.env.OTP_EXPIRES_IN,
-		};
+	private generateCode = (length: number = 6, options: OtpOptions = { upperCaseAlphabets: false, lowerCaseAlphabets: false, specialChars: false }): string => {
+		return otpGenerator.generate(length, options);
 	};
 
-	async generateVerificationKey(payload: OtpPayload): Promise<string> {
+	private async generateVerificationKey(payload: OtpPayload): Promise<string> {
 		const key = await encrypt(payload, process.env.OTP_SECRET);
 
 		return key;
 	};
 
-	async parseVerificationKey(token: string): Promise<OtpPayload> {
+	private async parseVerificationKey(token: string): Promise<OtpPayload> {
 		const payload = await decrypt(token, process.env.OTP_SECRET);
 
 		return payload as OtpPayload;
 	};
 
-	async send(payload: { email: string, action: string, userName: string }): Promise<{ verificationKey: string }> {
-		const { email, action } = payload;
+	async generateOtp(payload: { check: string, action: string }): Promise<OtpObject> {
+		const { check, action } = payload;
 
-		try {
-			if (!action) {
-				throw new Error('Action type not provided');
-			}
-			if (!email) {
-				throw new Error('Email not provided');
-			}
-
-			// Generate OTP
-			const otpData = this.generateOtp();
-
-			// Create OTP instance in DB
-			const otpInstance = await this.otpModel.create({
-				...otpData,
-				action,
-			});
-
-			// Create details object containing the phone number and otp id
-			const details: OtpPayload = {
-				createdAt: otpInstance.createdAt,
-				check: email,
-				action,
-				otpId: otpInstance.id,
-			};
-
-			// Encrypt the details object
-			const verificationKey = await this.generateVerificationKey(details);
-
-			if (email) {
-				await this.mailService.sendEmailOtp(email, {
-					...otpData,
-					...payload,
-				});
-			}
-
-			return { verificationKey };
-		} catch (error) {
-			throw new BadRequestException(error.message);
-
+		if (!action) {
+			throw new Error('Action type not provided');
 		}
+		if (!check) {
+			throw new Error('Checker not provided');
+		}
+
+		// Generate OTP
+		const code = this.generateCode();
+
+		// Create OTP instance in DB
+		const otpInstance = await this.otpModel.create({
+			code,
+			ttl: process.env.OTP_EXPIRES_IN,
+			action,
+		});
+
+		// Create details object containing the phone number and otp id
+		const details: OtpPayload = {
+			createdAt: otpInstance.createdAt,
+			check,
+			action,
+			otpId: otpInstance.id,
+		};
+
+		// Encrypt the details object
+		const verificationKey = await this.generateVerificationKey(details);
+
+		// if (email) {
+		// 	await this.mailService.sendEmailOtp(email, {
+		// 		code,
+		// 		ttl: process.env.OTP_EXPIRES_IN,
+		// 		userName,
+		// 	});
+		// }
+
+		return {
+			verificationKey,
+			code,
+			ttl: process.env.OTP_EXPIRES_IN,
+			data: details,
+		};
 	};
 
-	async verify(verificationKey: string, otp: string, check: string): Promise<Otp> {
+	async verifyOtp(payload: VerificationPayload): Promise<Otp> {
+		const { verificationKey, otp, check, action } = payload;
+
 		try {
 			if (!verificationKey) {
 				throw new Error('Verification Key not provided');
@@ -107,6 +115,9 @@ export class OtpService {
 			}
 			if (!check) {
 				throw new Error('Check not Provided');
+			}
+			if (!action) {
+				throw new Error('Action not Provided');
 			}
 
 			// Check if verification key is altered or not and store it in variable decoded after decryption
@@ -123,6 +134,10 @@ export class OtpService {
 			// Check if OTP is available in the DB
 			if (!otpInstance) {
 				throw new Error('OTP is not exist');
+			}
+
+			if (decryptData.action !== action || action !== otpInstance.action) {
+				throw new Error('Invalid action');
 			}
 
 			// Check if OTP is already used or not
@@ -158,7 +173,7 @@ export class OtpService {
 
 			return otpInstance;
 		} catch (error) {
-			throw new HttpException(error.message || 'Invalid OTP', HttpStatus.NOT_ACCEPTABLE);;
+			throw new HttpException(error.message || 'Invalid OTP', HttpStatus.GONE);
 
 		}
 	};

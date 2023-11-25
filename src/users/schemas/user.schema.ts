@@ -11,7 +11,7 @@
 
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, HydratedDocument } from 'mongoose';
-import { UserRole, UserStatus } from 'src/constants/user.enum';
+import { UserRole, UserStatus, UserVerificationProviders } from 'src/constants/user.enum';
 
 export type UserDocument = HydratedDocument<User>;
 
@@ -68,10 +68,18 @@ export class User extends Document {
 	status: UserStatus;
 
 	@Prop()
-	lastLoginAt: number;
+	country: string;
+
+	@Prop({
+		type: [String],
+		// enum: Object.values(UserVerificationProviders),
+		enum: UserVerificationProviders,
+		// default: [],
+	})
+	verifiedBy: UserVerificationProviders[];
 
 	@Prop()
-	country: string;
+	lastLoginAt: number;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

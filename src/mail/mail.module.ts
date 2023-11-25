@@ -50,7 +50,7 @@ import { MailService } from 'src/mail/mail.service';
 						},
 					},
 				},
-				preview: config.get('NODE_ENV') === 'development',
+				// preview: config.get('NODE_ENV') === 'development',
 			}),
 			inject: [ConfigService],
 		}),

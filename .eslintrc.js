@@ -40,12 +40,12 @@ module.exports = {
 					"PascalCase"
 				]
 			},
-			{
-				"selector": "enumMember",
-				"format": [
-					"PascalCase"
-				]
-			},
+			// {
+			// 	"selector": "enumMember",
+			// 	"format": [
+			// 		"PascalCase"
+			// 	]
+			// },
 			{
 				"selector": "typeAlias",
 				"format": [

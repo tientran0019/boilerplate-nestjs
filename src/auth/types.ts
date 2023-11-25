@@ -22,11 +22,12 @@ export type TokenObject = {
 
 export interface ResLoginObject {
 	user: User,
-	backendTokens: {
+	backendTokens?: {
 		accessToken: string,
 		refreshToken: string,
 		expiresIn: string | number,
-	}
+	},
+	verificationKey?: string,
 }
 
 // Describes the type of grant object taken in by method "refresh"

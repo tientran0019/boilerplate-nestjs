@@ -12,6 +12,7 @@ import { AuthorizeGuard } from 'src/auth/guards/authorize.guard';
 import { UserCredentials, UserCredentialsSchema } from 'src/auth/schemas/user-credentials.schema';
 import { User, UserSchema } from 'src/users/schemas/user.schema';
 import { MailModule } from 'src/mail/mail.module';
+import { OtpModule } from 'src/otp/otp.module';
 
 @Module({
 	imports: [
@@ -22,6 +23,7 @@ import { MailModule } from 'src/mail/mail.module';
 		]),
 		JwtModule.register({}),
 		MailModule,
+		OtpModule,
 	],
 	providers: [
 		AuthService,
