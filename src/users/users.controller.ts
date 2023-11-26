@@ -9,13 +9,14 @@
 * Last updated by: Tien Tran
 *------------------------------------------------------- */
 
-import { Body, Controller, Delete, Get, NotFoundException, Param, Patch, Post, Query, Response } from '@nestjs/common';
+import { Body, ClassSerializerInterceptor, Controller, Get, Param, Patch, Post, Query, UseInterceptors } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { UsersService } from 'src/users//users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './schemas/user.schema';
 import { ObjectId } from 'mongoose';
+import { UserEntity } from './entities/user.entity';
 
 @ApiTags('Users Management (for Amin)')
 @Controller('users')
@@ -28,15 +29,19 @@ export class UsersController {
 	}
 
 	@Get()
-	async findAll(@Query() query): Promise<User[]> {
+	async findAll(@Query() query): Promise<{ data: User[], total: number, limit: number, skip: number }> {
 		console.log('DEV ~ file: users.controller.ts:32 ~ UsersController ~ findAll ~ query:', query);
 
 		return this.usersService.findAll(query);
 	}
 
+	@UseInterceptors(ClassSerializerInterceptor)
 	@Get(':id')
-	async findOne(@Param('id') id: ObjectId): Promise<User> {
-		return this.usersService.findById(id);
+	async findOne(@Param('id') id: ObjectId): Promise<UserEntity> {
+		const user = await this.usersService.findById(id);
+
+		// return user;
+		return new UserEntity(user.toObject());
 	}
 
 	@Patch(':id')

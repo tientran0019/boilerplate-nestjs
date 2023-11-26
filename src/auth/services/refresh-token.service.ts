@@ -5,7 +5,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { RefreshToken } from '../schemas/refresh-token.schema';
 import { Model } from 'mongoose';
 import { AccessTokenService } from './access-token.service';
-import { ClientInfo, TokenObject } from '../types';
+import { ClientInfo, TokenObject } from '../auth.interface';
 import { FastifyRequest } from 'fastify';
 import { User } from 'src/users/schemas/user.schema';
 import async from 'async';

@@ -6,7 +6,7 @@ import { FastifyRequest } from 'fastify';
 
 import { User } from 'src/users/schemas/user.schema';
 
-import { UserProfileForToken } from 'src/auth/types';
+import { UserProfileForToken } from 'src/auth/auth.interface';
 import { convertToTokenProfile } from 'src/auth/utils';
 
 @Injectable()

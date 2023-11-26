@@ -7,7 +7,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { AccessTokenService } from '../services/access-token.service';
-import { ClientInfo } from '../types';
+import { ClientInfo } from '../auth.interface';
 
 @Injectable()
 export class AuthenticateGuard implements CanActivate {

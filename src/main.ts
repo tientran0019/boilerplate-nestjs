@@ -5,6 +5,7 @@ import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify
 
 import helmet from '@fastify/helmet';
 import csrf from '@fastify/csrf-protection';
+import compression from '@fastify/compress';
 
 import { AppModule } from './app.module';
 import { AuthModule } from './auth/auth.module';
@@ -44,6 +45,8 @@ async function bootstrap() {
 	});
 
 	await app.register(csrf);
+
+	await app.register(compression, { encodings: ['gzip', 'deflate'] });
 
 	await app.register(helmet, {
 		contentSecurityPolicy: {

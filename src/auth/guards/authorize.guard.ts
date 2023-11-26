@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AUTHORIZE_KEY } from '../decorators/authorize.decorator';
-import { AuthorizationMetadata, ClientInfo, Permissions, UserProfileForToken } from '../types';
+import { AuthorizationMetadata, ClientInfo, Permissions, UserProfileForToken } from '../auth.interface';
 import { AccessTokenService } from '../services/access-token.service';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 

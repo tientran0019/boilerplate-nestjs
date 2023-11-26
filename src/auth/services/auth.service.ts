@@ -6,7 +6,7 @@ import { Model, ObjectId } from 'mongoose';
 import { compare, hash } from 'bcrypt';
 
 import { UserStatus, UserVerificationProviders } from 'src/users/user.enum';
-import { ClientInfo, ResLoginObject, TokenObject } from 'src/auth/types';
+import { ClientInfo, ResLoginObject, TokenObject } from 'src/auth/auth.interface';
 import { UserCredentials } from 'src/auth/schemas/user-credentials.schema';
 import { User } from 'src/users/schemas/user.schema';
 

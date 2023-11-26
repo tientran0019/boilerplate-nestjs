@@ -44,6 +44,7 @@ export class UsersService {
 		const newUser = await new this.usersModel(createUserDto);
 		return newUser.save();
 	}
+
 	async update(id: ObjectId, updateUserDto: UpdateUserDto): Promise<User> {
 		const existing = await this.usersModel.findByIdAndUpdate(id, updateUserDto, { new: true });
 		if (!existing) {
@@ -51,16 +52,19 @@ export class UsersService {
 		}
 		return existing;
 	}
+
 	async findAll(query: any): Promise<{ data: User[], total: number, limit: number, skip: number }> {
 		const { limit, skip, filter = {} } = query;
 
 		const total = await this.usersModel.countDocuments(filter, { _id: true }).exec();
 
 		const data = await this.usersModel.find(filter, {}, {}).limit(limit).skip(skip).exec();
+		console.log('DEV ~ file: users.service.ts:62 ~ UsersService ~ findAll ~ data:', data);
 
 		if (!data) {
 			throw new NotFoundException('Users data not found!');
 		}
+
 		return {
 			data,
 			total,
@@ -69,13 +73,31 @@ export class UsersService {
 		};
 	}
 
+	async find(query: any): Promise< User[]> {
+		const { limit, skip, filter = {} } = query;
+		const data = await this.usersModel.find(filter, {}, {}).limit(limit).skip(skip).exec();
+		console.log('DEV ~ file: users.service.ts:78 ~ UsersService ~ find ~ data:', data);
+
+		if (!data) {
+			throw new NotFoundException('Users data not found!');
+		}
+
+		return data;
+	}
+
 	async findById(id: ObjectId): Promise<User> {
-		const existing = await this.usersModel.findById(id).exec();
+		const existing = await this.usersModel.findById(id);
+		// console.log('DEV ~ file: users.service.ts:90 ~ UsersService ~ findById ~ existing:', existing.id);
+		// console.log('DEV ~ file: users.service.ts:90 ~ UsersService ~ findById ~ existing:', existing.phone);
+		// console.log('DEV ~ file: users.service.ts:90 ~ UsersService ~ findById ~ existing:', existing.toObject());
+
 		if (!existing) {
 			throw new NotFoundException(`User #${id} not found`);
 		}
+
 		return existing;
 	}
+
 	async delete(id: ObjectId): Promise<User> {
 		const deleteData = await this.usersModel.findByIdAndDelete(id);
 		if (!deleteData) {

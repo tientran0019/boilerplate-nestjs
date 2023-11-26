@@ -11,7 +11,7 @@ import {
 import { AuthService } from './services/auth.service';
 import { CredentialsDto } from 'src/auth/dto/credentials.dto';
 import { RefreshJwtGuard } from 'src/auth/guards/refresh.guard';
-import { Permissions, ResLoginObject, TokenObject } from 'src/auth/types';
+import { Permissions, ResLoginObject, TokenObject } from 'src/auth/auth.interface';
 import { User } from 'src/users/schemas/user.schema';
 import { Authorize } from 'src/auth/decorators/authorize.decorator';
 import { UpdateProfileDto } from './dto/update-profile.dto';

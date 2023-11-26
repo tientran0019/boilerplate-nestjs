@@ -1,5 +1,5 @@
 import { User } from 'src/users/schemas/user.schema';
-import { UserProfileForToken } from './types';
+import { UserProfileForToken } from './auth.interface';
 
 export const convertToTokenProfile = (user: User): UserProfileForToken => {
 	return {

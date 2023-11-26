@@ -17,7 +17,7 @@ import { Roles } from './auth/decorators/roles.decorator';
 import { UserRole } from './users/user.enum';
 import { Public } from './auth/decorators/public.decorator';
 import { Authorize } from './auth/decorators/authorize.decorator';
-import { Permissions, RequestWithAuth } from './auth/types';
+import { Permissions, RequestWithAuth } from './auth/auth.interface';
 import { Throttle } from '@nestjs/throttler';
 
 @Controller()
