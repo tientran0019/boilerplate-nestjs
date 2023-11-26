@@ -4,7 +4,6 @@ import { MongooseError } from 'mongoose';
 @Catch(MongooseError)
 export class MongooseExceptionFilter implements ExceptionFilter {
 	catch(exception: InternalServerErrorException, host: ArgumentsHost) {
-		console.log('DEV ~ file: mongo-exception.filter.ts:14 ~ MongoExceptionFilter ~ exception:', exception);
 		const ctx = host.switchToHttp();
 		const response = ctx.getResponse();
 		// const request = ctx.getRequest();

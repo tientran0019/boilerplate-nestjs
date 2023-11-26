@@ -9,20 +9,38 @@
 * Last updated by: Tien Tran
 *------------------------------------------------------- */
 
-import { Controller } from '@nestjs/common';
+import { Body, Controller, Delete, Get, NotFoundException, Param, Patch, Post, Query, Response } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { UsersService } from 'src/users//users.service';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { User } from './schemas/user.schema';
+import { ObjectId } from 'mongoose';
 
-@Controller('user')
+@ApiTags('Users Management (for Amin)')
+@Controller('users')
 export class UsersController {
 	constructor(private usersService: UsersService) { }
 
-	// @Get(':id')
-	// async getUserProfile(@Param('id') id: string) {
-	// 	const user = await this.usersService.findById(id);
+	@Post()
+	async create(@Body() dto: CreateUserDto): Promise<User> {
+		return this.usersService.create(dto);
+	}
 
-	// 	if (!user) {
-	// 		throw new NotFoundException('User not found');
-	// 	}
-	// 	return user;
-	// }
+	@Get()
+	async findAll(@Query() query): Promise<User[]> {
+		console.log('DEV ~ file: users.controller.ts:32 ~ UsersController ~ findAll ~ query:', query);
+
+		return this.usersService.findAll(query);
+	}
+
+	@Get(':id')
+	async findOne(@Param('id') id: ObjectId): Promise<User> {
+		return this.usersService.findById(id);
+	}
+
+	@Patch(':id')
+	async update(@Param('id') id: ObjectId, @Body() updateArticleDto: UpdateUserDto): Promise<User> {
+		return this.usersService.update(id, updateArticleDto);
+	}
 }

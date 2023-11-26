@@ -9,13 +9,15 @@
 * Last updated by: Tien Tran
 *------------------------------------------------------- */
 
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { User } from './schemas/user.schema';
 
 // import omit from 'tily/object/omit';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, ObjectId } from 'mongoose';
 import { UserStatus } from 'src/users/user.enum';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -30,15 +32,55 @@ export class UsersService {
 		}).exec();
 	}
 
-	async findById(id: string): Promise<User> {
-		return await this.usersModel.findById(id).exec();
-	}
-
 	verifyUserStatus(user: User): boolean {
 		if (user.status !== UserStatus.ACTIVE) {
 			throw new UnauthorizedException('User is inactive');
 		}
 
 		return true;
+	}
+
+	async create(createUserDto: CreateUserDto): Promise<User> {
+		const newUser = await new this.usersModel(createUserDto);
+		return newUser.save();
+	}
+	async update(id: ObjectId, updateUserDto: UpdateUserDto): Promise<User> {
+		const existing = await this.usersModel.findByIdAndUpdate(id, updateUserDto, { new: true });
+		if (!existing) {
+			throw new NotFoundException(`User #${id} not found`);
+		}
+		return existing;
+	}
+	async findAll(query: any): Promise<{ data: User[], total: number, limit: number, skip: number }> {
+		const { limit, skip, filter = {} } = query;
+
+		const total = await this.usersModel.countDocuments(filter, { _id: true }).exec();
+
+		const data = await this.usersModel.find(filter, {}, {}).limit(limit).skip(skip).exec();
+
+		if (!data) {
+			throw new NotFoundException('Users data not found!');
+		}
+		return {
+			data,
+			total,
+			skip,
+			limit,
+		};
+	}
+
+	async findById(id: ObjectId): Promise<User> {
+		const existing = await this.usersModel.findById(id).exec();
+		if (!existing) {
+			throw new NotFoundException(`User #${id} not found`);
+		}
+		return existing;
+	}
+	async delete(id: ObjectId): Promise<User> {
+		const deleteData = await this.usersModel.findByIdAndDelete(id);
+		if (!deleteData) {
+			throw new NotFoundException(`User #${id} not found`);
+		}
+		return deleteData;
 	}
 }
