@@ -1,3 +1,14 @@
+/** --------------------------------------------------------
+* Author Tien Tran
+* Email tientran0019@gmail.com
+* Phone 0972970075
+*
+* Created: 2023-11-27 13:04:28
+
+* Last updated on: 2023-11-27 13:04:28
+* Last updated by: Tien Tran
+*------------------------------------------------------- */
+
 import { NestFactory } from '@nestjs/core';
 import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -31,7 +42,7 @@ async function bootstrap() {
 		* Tip: if no other decorator is suitable for your property use @Allow decorator.
 		*/
 		whitelist: true,
-		forbidNonWhitelisted: true,
+		forbidNonWhitelisted: false, // Throw the error or not
 		transform: true,
 	}));
 

@@ -17,6 +17,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './schemas/user.schema';
 import { ObjectId } from 'mongoose';
 import { UserEntity } from './entities/user.entity';
+import MongooseClassSerializerInterceptor from '@modules/base/interceptors/mongoose-class-serializer.interceptor';
 
 @ApiTags('Users Management (for Amin)')
 @Controller('users')
@@ -28,21 +29,22 @@ export class UsersController {
 		return this.usersService.create(dto);
 	}
 
+	@UseInterceptors(MongooseClassSerializerInterceptor(UserEntity))
 	@Get()
-	async findAll(@Query() query): Promise<{ data: User[], total: number, limit: number, skip: number }> {
+	async findAll(@Query() query): Promise<{ items: User[], total: number, limit: number, skip: number }> {
 		console.log('DEV ~ file: users.controller.ts:32 ~ UsersController ~ findAll ~ query:', query);
 
 		return this.usersService.findAll(query);
 	}
 
-	@UseInterceptors(ClassSerializerInterceptor)
+	@UseInterceptors(MongooseClassSerializerInterceptor(UserEntity))
 	@Get(':id')
-	async findOne(@Param('id') id: ObjectId): Promise<UserEntity> {
+	async findOne(@Param('id') id: ObjectId): Promise<User> {
 		const user = await this.usersService.findById(id);
-		console.log('DEV ~ file: users.controller.ts:42 ~ UsersController ~ findOne ~ user:', user.phone);
+		console.log('DEV ~ file: users.controller.ts:44 ~ UsersController ~ findOne ~ user:', user);
 
-		// return user;
-		return new UserEntity(user);
+		return user;
+		// return new UserEntity(user);
 	}
 
 	@Patch(':id')

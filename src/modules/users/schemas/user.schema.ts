@@ -11,7 +11,7 @@
 
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-import { UserRole, UserStatus, UserVerificationProviders } from '@modules/users/user.enum';
+import { UserGender, UserRole, UserStatus, UserVerificationProviders } from '@modules/users/user.enum';
 import { Address, AddressSchema } from './address.schema';
 import { BaseSchema } from '@modules/base/schemas/base.schema';
 
@@ -22,20 +22,19 @@ export type UserDocument = HydratedDocument<User>;
 	autoIndex: true,
 	versionKey: false,
 	collection: 'User',
-	toJSON: {
-		getters: true,
-		virtuals: true,
-	},
-	toObject: {
-		// getters: true,
-		// virtuals: true,
-		// transform: (doc, ret) => {
-		// 	return new User(ret);
-		// },
-	},
+	// toJSON: {
+	// 	getters: true,
+	// 	virtuals: true,
+	// },
+	// toObject: {
+	// 	getters: true,
+	// 	virtuals: true,
+	// },
 })
 export class User extends BaseSchema {
-	@Prop()
+	@Prop({
+		immutable: true,
+	})
 	createdAt: number;
 
 	@Prop()
@@ -57,6 +56,7 @@ export class User extends BaseSchema {
 		lowercase: true,
 		trim: true,
 		match: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+		immutable: true,
 	})
 	email: string;
 
@@ -65,19 +65,27 @@ export class User extends BaseSchema {
 		text: true,
 		lowercase: true,
 		trim: true,
-		match: /^([+]\d{2})?\d{10}$/,
-		get: (phone: string) => {
-			if (!phone) {
-				return;
-			}
-			const lastThreeDigits = phone.slice(phone.length - 4);
-			return `****-***-${lastThreeDigits}`;
-		},
-		set: (phone: string) => {
-			return phone.trim();
-		},
+		// match: /^([+]\d{2})?\d{10}$/,
+		// get: (phone: string) => {
+		// 	if (!phone) {
+		// 		return;
+		// 	}
+		// 	const lastThreeDigits = phone.slice(phone.length - 4);
+		// 	return `****-***-${lastThreeDigits}`;
+		// },
+		// set: (phone: string) => {
+		// 	return phone.trim();
+		// },
 	})
 	phone: string;
+
+	@Prop({
+		enum: UserGender,
+	})
+	gender: UserGender;
+
+	@Prop()
+	dateOfBirth: number;
 
 	@Prop({
 		enum: UserRole,
@@ -93,11 +101,12 @@ export class User extends BaseSchema {
 	})
 	status: UserStatus;
 
-	@Prop()
-	country: string;
-
 	@Prop({
-		type: [AddressSchema],
+		type: [
+			{
+				type: AddressSchema,
+			},
+		],
 	})
 	address: Address[];
 
@@ -117,22 +126,22 @@ export const UserSchema = SchemaFactory.createForClass(User);
 
 // UserSchema.plugin(require('mongoose-autopopulate'));
 
-UserSchema.pre('save', async function (next) {
-	console.log('DEV ~ file: user.schema.ts:93 ~ next:', next);
-	// OTHER USEFUL METHOD: getOptions, getPopulatedPaths, getQuery = getFilter, getUpdate
-	// const user = await this.model.findOne(this.getFilter());
-	return next();
-});
+// UserSchema.pre('save', async function (next) {
+// 	console.log('DEV ~ file: user.schema.ts:93 ~ next:', next);
+// 	// OTHER USEFUL METHOD: getOptions, getPopulatedPaths, getQuery = getFilter, getUpdate
+// 	// const user = await this.model.findOne(this.getFilter());
+// 	return next();
+// });
 
-UserSchema.virtual('defaultAddress').get(function (this: UserDocument) {
-	if (this.address?.length) {
-		return `${(this.address[0].street && ' ') || ''}${this.address[0].city} ${this.address[0].state} ${this.address[0].country}`;
-	}
-});
+// UserSchema.virtual('defaultAddress').get(function (this: UserDocument) {
+// 	if (this.address?.[0]) {
+// 		return `${(this.address[0].street && ' ') || ''}${this.address[0].city} ${this.address[0].state} ${this.address[0].country}`;
+// 	}
+// });
 
-UserSchema.virtual('username').get(function (this: UserDocument) {
-	return this.email?.split('@')[0];
-});
+// UserSchema.virtual('username').get(function (this: UserDocument) {
+// 	return this.email?.split('@')[0];
+// });
 
 // export const UserSchemaFactory = (
 // 	flash_card_model: Model<FlashCardDocument>,

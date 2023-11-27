@@ -9,16 +9,13 @@
 * Last updated by: Tien Tran
 *------------------------------------------------------- */
 
-import { IsNotEmpty, IsString } from 'class-validator';
+import { OmitType, PartialType } from '@nestjs/swagger';
 
-export class UpdateUserDto {
-	@IsNotEmpty()
-	@IsString()
-	readonly fullName: string;
+import { CreateUserDto } from './create-user.dto';
 
-	@IsString()
-	readonly phone: string;
+// PickType(DTOObject, ['field_name'] as const), IntersectionType(DTO1, DTO2)
+export class UpdateUserDto extends PartialType(
+	OmitType(CreateUserDto, ['email', 'password']),
+) {
 
-	@IsString()
-	readonly country: string;
 }

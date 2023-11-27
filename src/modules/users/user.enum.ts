@@ -10,6 +10,11 @@ export enum UserStatus {
 	INACTIVE = 'INACTIVE',
 }
 
+export enum UserGender {
+	MALE = 'male',
+	FEMALE = 'female',
+}
+
 export enum UserVerificationProviders {
 	EMAIL = 'EMAIL',
 	PHONE = 'PHONE',

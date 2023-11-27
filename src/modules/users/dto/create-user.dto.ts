@@ -9,7 +9,10 @@
 * Last updated by: Tien Tran
 *------------------------------------------------------- */
 
-import { IsEmail, IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsArray, IsEmail, IsEnum, IsMilitaryTime, IsNotEmpty, IsOptional, IsString, IsStrongPassword, ValidateNested } from 'class-validator';
+import { CreateAddressDto } from './create-address.dto';
+import { UserGender } from '../user.enum';
 
 export class CreateUserDto {
 	@IsNotEmpty()
@@ -18,25 +21,32 @@ export class CreateUserDto {
 
 	@IsNotEmpty()
 	@IsEmail({}, { message: 'Please enter correct email' })
-	readonly email: string;
+	readonly email!: string;
 
-	// @Exclude()
 	@IsNotEmpty()
 	@IsString()
-	@MinLength(6, { message: 'Password should be at least 6 characters.' })
-	@MaxLength(30, { message: 'Password should not exceed 30 characters.' })
-	readonly password: string;
+	@IsStrongPassword()
+	readonly password!: string;
+
+	@IsOptional()
+	@IsString()
+	readonly phone?: string;
 
 	@IsString()
-	readonly phone: string;
+	@IsOptional()
+	@IsEnum(UserGender)
+	readonly gender?: string;
 
-	@IsString()
-	readonly country: string;
+	@IsOptional()
+	@IsMilitaryTime()
+	dateOfBirth?: Date;
 
-	// @Expose()
-	// get fullName(): string {
-	// 	return `${this.firstName} ${this.lastName}`;
-	// }
+	@IsOptional()
+	@IsArray()
+	// @ArrayMinSize(1)
+	@ValidateNested({ each: true })
+	@Type(() => CreateAddressDto)
+	address?: CreateAddressDto[];
 
 	// @Transform(({ value }) => ("" + value).toLowerCase())
 	// @IsEnum(UserRole)

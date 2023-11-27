@@ -53,20 +53,20 @@ export class UsersService {
 		return existing;
 	}
 
-	async findAll(query: any): Promise<{ data: User[], total: number, limit: number, skip: number }> {
+	async findAll(query: any): Promise<{ items: User[], total: number, limit: number, skip: number }> {
 		const { limit, skip, filter = {} } = query;
 
 		const total = await this.usersModel.countDocuments(filter, { _id: true }).exec();
 
-		const data = await this.usersModel.find(filter, {}, {}).limit(limit).skip(skip).exec();
-		console.log('DEV ~ file: users.service.ts:62 ~ UsersService ~ findAll ~ data:', data);
+		const items = await this.usersModel.find(filter, {}, {}).limit(limit).skip(skip).lean();
+		console.log('DEV ~ file: users.service.ts:62 ~ UsersService ~ findAll ~ items:', items);
 
-		if (!data) {
-			throw new NotFoundException('Users data not found!');
+		if (!items) {
+			throw new NotFoundException('User items not found!');
 		}
 
 		return {
-			data,
+			items,
 			total,
 			skip,
 			limit,
@@ -86,9 +86,10 @@ export class UsersService {
 	}
 
 	async findById(id: ObjectId): Promise<User> {
-		const existing = await this.usersModel.findById(id).lean();
-		// console.log('DEV ~ file: users.service.ts:90 ~ UsersService ~ findById ~ existing:', existing.id);
-		// console.log('DEV ~ file: users.service.ts:90 ~ UsersService ~ findById ~ existing:', existing.phone);
+		const existing = await this.usersModel.findById(id);
+
+		// console.log('DEV ~ file: users.service.ts:90 ~ UsersService ~ findById ~ existing:', existing._id.toString());
+		console.log('DEV ~ file: users.service.ts:90 ~ UsersService ~ findById ~ existing:', existing);
 		// console.log('DEV ~ file: users.service.ts:90 ~ UsersService ~ findById ~ existing:', existing.toObject());
 
 		if (!existing) {
