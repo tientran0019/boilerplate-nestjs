@@ -1,22 +1,23 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { MongooseModule } from '@nestjs/mongoose';
 
 import redisStore from 'cache-manager-ioredis-yet';
 import { CacheModule } from '@nestjs/cache-manager';
 
-import { AppController } from 'src/app.controller';
-import { AppService } from 'src/app.service';
-import { CoreModule } from 'src/core/core.module';
-import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
-import { ArticlesModule } from './articles/articles.module';
-import { MailModule } from './mail/mail.module';
-import { OtpModule } from './otp/otp.module';
-import { APP_GUARD } from '@nestjs/core';
+import { CoreModule } from '@modules/base/core.module';
+import { AuthModule } from '@modules/auth/auth.module';
+import { UsersModule } from '@modules/users/users.module';
+import { ArticlesModule } from '@modules/articles/articles.module';
+import { MailModule } from '@modules/mail/mail.module';
+import { OtpModule } from '@modules/otp/otp.module';
+import { ArticleCategoriesModule } from '@modules/article-categories/article-categories.module';
 
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 @Module({
 	imports: [
 		ConfigModule.forRoot({
@@ -55,6 +56,7 @@ import { APP_GUARD } from '@nestjs/core';
 		AuthModule,
 		OtpModule,
 		ArticlesModule,
+		ArticleCategoriesModule,
 	],
 	controllers: [AppController],
 	providers: [

@@ -13,11 +13,11 @@ import { Controller, Get, Headers, Request } from '@nestjs/common';
 import { AppService } from './app.service';
 
 import { FastifyRequest } from 'fastify';
-import { Roles } from './auth/decorators/roles.decorator';
-import { UserRole } from './users/user.enum';
-import { Public } from './auth/decorators/public.decorator';
-import { Authorize } from './auth/decorators/authorize.decorator';
-import { Permissions, RequestWithAuth } from './auth/auth.interface';
+import { Roles } from '@modules/auth/decorators/roles.decorator';
+import { UserRole } from '@modules/users/user.enum';
+import { Public } from '@modules/auth/decorators/public.decorator';
+import { Authorize } from '@modules/auth/decorators/authorize.decorator';
+import { Permissions, RequestWithAuth } from '@modules/auth/auth.interface';
 import { Throttle } from '@nestjs/throttler';
 
 @Controller()

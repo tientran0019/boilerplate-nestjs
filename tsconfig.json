@@ -4,12 +4,17 @@
 		"outDir": "./dist",
 		"baseUrl": "./",
 		"paths": {
-			"src/*": [
-				"./src/*",
-				"./dist/*"
+			"@modules/*": [
+				"src/modules/*"
 			],
-			"public/*": [
-				"./public/*"
+			"@configs/*": [
+				"src/configs/*"
+			],
+			"@utils/*": [
+				"src/utils/*"
+			],
+			"@repositories/*": [
+				"src/repositories/*"
 			]
 		},
 		"module": "commonjs",
