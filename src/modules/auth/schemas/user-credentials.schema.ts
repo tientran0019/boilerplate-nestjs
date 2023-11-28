@@ -13,7 +13,7 @@ export class UserCredentials extends Document {
 	@Prop({
 		ref: User.name,
 		required: true,
-		type: MongooseSchema.Types.ObjectId ,
+		type: MongooseSchema.Types.ObjectId,
 	})
 	userId: Types.ObjectId;
 

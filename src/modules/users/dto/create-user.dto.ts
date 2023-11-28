@@ -39,7 +39,7 @@ export class CreateUserDto {
 
 	@IsOptional()
 	@IsMilitaryTime()
-	dateOfBirth?: Date;
+	dateOfBirth?: number;
 
 	@IsOptional()
 	@IsArray()

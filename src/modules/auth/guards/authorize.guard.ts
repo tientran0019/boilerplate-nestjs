@@ -13,7 +13,10 @@ export class AuthorizeGuard implements CanActivate {
 	) { }
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
-		const { allowedRoles, deniedRoles } = this.reflector.get<AuthorizationMetadata>(AUTHORIZE_KEY, context.getHandler()) || {};
+		const { allowedRoles, deniedRoles } = this.reflector.getAllAndOverride<AuthorizationMetadata>(AUTHORIZE_KEY, [
+			context.getHandler(),
+			context.getClass(),
+		]) || {};
 
 		const request = context.switchToHttp().getRequest();
 		const token = this.accessTokenService.extractTokenFromHeader(request);

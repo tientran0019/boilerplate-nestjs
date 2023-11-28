@@ -47,7 +47,7 @@ export class UserEntity {
 	// 	return this.email?.split('@')[0];
 	// }
 
-	// constructor(partial: Partial<UserEntity>) {
-	// 	Object.assign(this, partial);
-	// }
+	constructor(partial: Partial<UserEntity>) {
+		Object.assign(this, partial);
+	}
 }

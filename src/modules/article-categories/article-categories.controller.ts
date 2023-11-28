@@ -2,7 +2,9 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { ArticleCategoriesService } from './article-categories.service';
 import { CreateArticleCategoryDto } from './dto/create-article-category.dto';
 import { UpdateArticleCategoryDto } from './dto/update-article-category.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Article Categories')
 @Controller('article-categories')
 export class ArticleCategoriesController {
 	constructor(private readonly articleCategoriesService: ArticleCategoriesService) { }

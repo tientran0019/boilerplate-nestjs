@@ -2,7 +2,6 @@ import {
 	IsNotEmpty,
 	IsNumber,
 	IsOptional,
-	IsPostalCode,
 	MaxLength,
 	MinLength,
 } from 'class-validator';
@@ -25,8 +24,8 @@ export class CreateAddressDto {
 
 	@IsOptional()
 	@IsNumber()
-	@IsPostalCode()
-	postalCode: number;
+	// @IsPostalCode()
+	postalCode?: number;
 
 	@IsNotEmpty()
 	@MinLength(2)

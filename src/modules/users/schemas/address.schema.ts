@@ -1,11 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-import { BaseSchema } from '@modules/base/schemas/base.schema';
 
 export type AddressDocument = HydratedDocument<Address>;
 
 @Schema()
-export class Address extends BaseSchema {
+export class Address {
 	@Prop({ minlength: 2, maxlength: 120 })
 	street?: string;
 

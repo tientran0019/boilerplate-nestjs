@@ -1,15 +1,23 @@
 import { Type } from 'class-transformer';
 import { IsOptional, IsInt } from 'class-validator';
+import { FilterQuery, ProjectionFields } from 'mongoose';
 
-export class FilterMessageDto {
+
+export interface Paths {
+	path: string | string[],
+	select?: string | any,
+	match?: any
+}
+
+export interface Filter {
+	limit?: number,
+	skip?: number,
+	where?: object,
+	projection?: object,
+	populate?: Paths,
+}
+
+export class QueryFilterDto {
 	@IsOptional()
-	@IsInt()
-	@Type(() => Number)
-	limit?: number = 10;
-
-
-	@IsOptional()
-	@IsInt()
-	@Type(() => Number)
-	skip?: number = 0;
+	filter?: Filter;
 }

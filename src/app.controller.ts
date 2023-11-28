@@ -19,7 +19,9 @@ import { Public } from '@modules/auth/decorators/public.decorator';
 import { Authorize } from '@modules/auth/decorators/authorize.decorator';
 import { Permissions, RequestWithAuth } from '@modules/auth/auth.interface';
 import { Throttle } from '@nestjs/throttler';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Health Check')
 @Controller()
 export class AppController {
 	constructor(

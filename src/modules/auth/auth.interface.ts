@@ -68,7 +68,7 @@ export interface RequestWithAuth extends FastifyRequest {
 export interface ClientInfo {
 	ip: string;
 	useragent: string;
-	location?: number[];
+	location?: [number, number];
 	clientId?: string;
 	address?: string;
 }

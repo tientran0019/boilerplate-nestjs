@@ -20,7 +20,7 @@ import { ChangePasswordDto } from './dto/change-password';
 import {
 	ApiBearerAuth,
 	ApiOperation,
-	ApiResponse,
+	ApiOkResponse,
 	ApiTags,
 } from '@nestjs/swagger';
 import { VerifyDto } from './dto/verify.dto';
@@ -73,7 +73,7 @@ export class AuthController {
 
 	@ApiOperation({ summary: 'Get current user profile' })
 	@ApiBearerAuth()
-	@ApiResponse({
+	@ApiOkResponse({
 		status: 200,
 		// description: 'The found record',
 		type: SignupDto,
@@ -94,7 +94,7 @@ export class AuthController {
 
 	@ApiOperation({ summary: 'Update current user profile' })
 	@ApiBearerAuth()
-	@ApiResponse({
+	@ApiOkResponse({
 		status: 200,
 		// description: 'The found record',
 		type: SignupDto,
@@ -120,7 +120,7 @@ export class AuthController {
 	}
 
 	@ApiOperation({ summary: 'User signup' })
-	@ApiResponse({
+	@ApiOkResponse({
 		status: 200,
 		// description: 'The found record',
 		type: SignupDto,
