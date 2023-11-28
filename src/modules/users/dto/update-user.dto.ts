@@ -16,6 +16,4 @@ import { CreateUserDto } from './create-user.dto';
 // PickType(DTOObject, ['field_name'] as const), IntersectionType(DTO1, DTO2)
 export class UpdateUserDto extends PartialType(
 	OmitType(CreateUserDto, ['email', 'password']),
-) {
-
-}
+) {}
