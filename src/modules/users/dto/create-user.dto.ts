@@ -10,7 +10,7 @@
 *------------------------------------------------------- */
 
 import { Type } from 'class-transformer';
-import { IsArray, IsEmail, IsEnum, IsMilitaryTime, IsNotEmpty, IsOptional, IsString, IsStrongPassword, ValidateNested } from 'class-validator';
+import { IsArray, IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { CreateAddressDto } from './create-address.dto';
 import { UserGender } from '../user.enum';
 
@@ -25,7 +25,7 @@ export class CreateUserDto {
 
 	@IsNotEmpty()
 	@IsString()
-	@IsStrongPassword()
+	// @IsStrongPassword()
 	readonly password!: string;
 
 	@IsOptional()
@@ -35,10 +35,9 @@ export class CreateUserDto {
 	@IsString()
 	@IsOptional()
 	@IsEnum(UserGender)
-	readonly gender?: string;
+	readonly gender?: UserGender;
 
 	@IsOptional()
-	@IsMilitaryTime()
 	dateOfBirth?: number;
 
 	@IsOptional()

@@ -16,16 +16,12 @@ export class Otp {
 
 	@Prop({
 		required: true,
-		index: true,
-		text: true,
-		trim: true,
 	})
 	ttl: number;
 
 	@Prop({
 		required: true,
 		index: true,
-		text: true,
 		trim: true,
 	})
 	code: string;

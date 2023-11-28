@@ -70,13 +70,13 @@ export class UsersController {
 	@ApiQuery({
 		name: 'filters',
 		required: false,
-		type: QueryFilterDto,
+		// type: 'Object',
 	})
 	@Get()
-	async findAll(@Query() filters: Filter): Promise<{ items: User[], total: number, limit: number, skip: number }> {
+	async findAll(@Query('filters') filters = '{}'): Promise<{ items: User[], total: number, limit: number, skip: number }> {
 		console.log('DEV ~ file: users.controller.ts:32 ~ UsersController ~ findAll ~ filter:', filters);
 
-		return this.usersService.findAll(filters);
+		return this.usersService.findAll(JSON.parse(filters));
 	}
 
 	@ApiOperation({

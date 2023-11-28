@@ -7,7 +7,6 @@ export type RefreshTokenDocument = HydratedDocument<RefreshToken>;
 
 @Schema({
 	timestamps: { currentTime: () => Date.now() },
-	autoIndex: true,
 	versionKey: false,
 	collection: 'RefreshToken',
 })
@@ -27,7 +26,7 @@ export class RefreshToken extends Document {
 
 	@Prop({
 		required: true,
-		unique: true,
+		index: 'hashed',
 	})
 	refreshToken: string;
 

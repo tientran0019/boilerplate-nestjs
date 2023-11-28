@@ -9,15 +9,22 @@
 * Last updated by: Tien Tran
 *------------------------------------------------------- */
 
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { User } from './schemas/user.schema';
 
 // import omit from 'tily/object/omit';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { FilterQuery, Model, PopulateOptions } from 'mongoose';
 import { UserStatus } from '@modules/users/user.enum';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+
+export type FindAllResponse<T> = {
+	total: number;
+	limit: number;
+	skip: number;
+	items: T[];
+};
 
 @Injectable()
 export class UsersService {
@@ -41,8 +48,8 @@ export class UsersService {
 	}
 
 	async create(createUserDto: CreateUserDto): Promise<User> {
-		const newUser = await new this.usersModel(createUserDto);
-		return newUser.save();
+		const newUser = new this.usersModel(createUserDto);
+		return await newUser.save();
 	}
 
 	async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
@@ -53,26 +60,56 @@ export class UsersService {
 		return existing;
 	}
 
-	async findAll(filter: any): Promise<{ items: User[], total: number, limit: number, skip: number }> {
-		const { limit, skip, where = {}, projection = {}, populate = {} } = filter;
+	// async findAll(filter: any): Promise<{ items: User[], total: number, limit: number, skip: number }> {
+	// 	const { limit, skip, where = {}, projection = {}, populate = {} } = filter;
 
-		const total = await this.usersModel.countDocuments(where, { _id: true }).exec();
+	// 	const total = await this.usersModel.countDocuments(where, { _id: true }).exec();
 
-		const items = await this.usersModel.find(where, projection).limit(limit).skip(skip).populate(populate.path).lean();
+	// 	const items = await this.usersModel.find(where, projection).limit(limit).skip(skip).populate(populate.path).lean();
 
-		if (!items) {
-			throw new NotFoundException('User items not found!');
-		}
+	// 	if (!items) {
+	// 		throw new NotFoundException('User items not found!');
+	// 	}
 
+	// 	return {
+	// 		items,
+	// 		total,
+	// 		skip,
+	// 		limit,
+	// 	};
+	// }
+
+
+	async findAll(
+		filters: {
+			where: FilterQuery<User>,
+			fields?: string;
+			populate?: string | string[]; // | PopulateOptions | PopulateOptions[];
+			skip?: number;
+			limit?: number;
+			sort?: object;
+		},
+	): Promise<FindAllResponse<User>> {
+		console.log('DEV ~ file: users.service.ts:92 ~ UsersService ~ filters:', filters);
+		const { limit = 10, skip = 0, sort = {} } = filters;
+
+		const [total, items] = await Promise.all([
+			this.usersModel.countDocuments({ ...filters.where, _isDeleted: false }),
+			this.usersModel.find({ ...filters.where, _isDeleted: false }, filters?.fields || '', {
+				skip,
+				limit,
+				sort,
+			}).populate(filters.populate),
+		]);
 		return {
-			items,
 			total,
+			items,
 			skip,
 			limit,
 		};
 	}
 
-	async find(query: any): Promise< User[]> {
+	async find(query: any): Promise<User[]> {
 		const { limit, skip, filter = {} } = query;
 		const data = await this.usersModel.find(filter, {}, {}).limit(limit).skip(skip).exec();
 		console.log('DEV ~ file: users.service.ts:78 ~ UsersService ~ find ~ data:', data);

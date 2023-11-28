@@ -19,50 +19,46 @@ export type UserDocument = HydratedDocument<User>;
 
 @Schema({
 	timestamps: { currentTime: () => Date.now() },
-	autoIndex: true,
 	versionKey: false,
 	collection: 'User',
-	// toJSON: {
-	// 	getters: true,
-	// 	virtuals: true,
-	// },
-	// toObject: {
-	// 	getters: true,
-	// 	virtuals: true,
-	// },
+	toJSON: {
+		getters: true,
+		virtuals: true,
+	},
 })
 export class User extends BaseSchema {
 	@Prop({
 		immutable: true,
+		match: /^\d{13}$/,
 	})
 	createdAt: number;
 
-	@Prop()
-	updatedAt: number;
-
 	@Prop({
-		required: true,
-		index: true,
-		text: true,
-		trim: true,
+		match: /^\d{13}$/,
 	})
-	fullName: string;
+	updatedAt: number;
 
 	@Prop({
 		required: true,
 		unique: true,
 		index: true,
-		text: true,
 		lowercase: true,
 		trim: true,
 		match: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
 		immutable: true,
+		type: String,
 	})
 	email: string;
 
 	@Prop({
+		required: true,
 		index: true,
-		text: true,
+		trim: true,
+	})
+	fullName: string;
+
+	@Prop({
+		index: true,
 		lowercase: true,
 		trim: true,
 		// match: /^([+]\d{2})?\d{10}$/,
@@ -84,7 +80,9 @@ export class User extends BaseSchema {
 	})
 	gender: UserGender;
 
-	@Prop()
+	@Prop({
+		match: /^\d{13}$/,
+	})
 	dateOfBirth: number;
 
 	@Prop({
@@ -118,11 +116,15 @@ export class User extends BaseSchema {
 	})
 	verifiedBy: UserVerificationProviders[];
 
-	@Prop()
+	@Prop({
+		match: /^\d{13}$/,
+	})
 	lastLoginAt: number;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
+
+// UserSchema.index({ email: 'text', fullName: 'text' }, { unique: true });
 
 // UserSchema.plugin(require('mongoose-autopopulate'));
 
