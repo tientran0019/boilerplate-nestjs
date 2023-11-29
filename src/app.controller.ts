@@ -13,7 +13,6 @@ import { Controller, Get, Headers, Request } from '@nestjs/common';
 import { AppService } from './app.service';
 
 import { FastifyRequest } from 'fastify';
-import { Roles } from '@modules/auth/decorators/roles.decorator';
 import { UserRole } from '@modules/users/user.enum';
 import { Public } from '@modules/auth/decorators/public.decorator';
 import { Authorize } from '@modules/auth/decorators/authorize.decorator';

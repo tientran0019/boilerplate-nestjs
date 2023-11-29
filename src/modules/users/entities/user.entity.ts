@@ -1,11 +1,20 @@
 import { Expose, Transform, Type } from 'class-transformer';
 import { UserRole, UserStatus, UserVerificationProviders } from '@modules/users/user.enum';
 import { Address } from '../schemas/address.schema';
+import { ApiProperty } from '@nestjs/swagger';
 
 // @Exclude()
 export class UserEntity {
+	readonly id: string;
+
+	@ApiProperty({
+		example: Date.now(),
+	})
 	readonly createdAt: number;
 
+	@ApiProperty({
+		example: Date.now(),
+	})
 	readonly updatedAt: number;
 
 	readonly fullName: string;
@@ -18,9 +27,15 @@ export class UserEntity {
 
 	readonly verifiedBy: UserVerificationProviders[];
 
+	@ApiProperty({
+		example: Date.now(),
+	})
 	readonly lastLoginAt: number;
 
-	@Expose({ name: 'birthDate', toPlainOnly: true })
+	// @Expose({ name: 'birthDate', toPlainOnly: true })
+	@ApiProperty({
+		example: Date.now(),
+	})
 	readonly dateOfBirth: number;
 
 	@Type(() => Address)
@@ -46,8 +61,4 @@ export class UserEntity {
 	// get username(): string {
 	// 	return this.email?.split('@')[0];
 	// }
-
-	constructor(partial: Partial<UserEntity>) {
-		Object.assign(this, partial);
-	}
 }

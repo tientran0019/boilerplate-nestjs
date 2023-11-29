@@ -1,13 +1,6 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { SignupDto } from './signup.dto';
+import { OmitType, PartialType } from '@nestjs/swagger';
 
-export class UpdateProfileDto {
-	@IsNotEmpty()
-	@IsString()
-	readonly fullName: string;
-
-	@IsString()
-	readonly phone: string;
-
-	@IsString()
-	readonly country: string;
-}
+export class UpdateProfileDto extends PartialType(
+	OmitType(SignupDto, ['email', 'password'] as const),
+) { }

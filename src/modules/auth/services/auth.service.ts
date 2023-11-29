@@ -1,8 +1,7 @@
 import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { CredentialsDto } from '@modules/auth/dto/credentials.dto';
 import { InjectModel } from '@nestjs/mongoose';
-import { FastifyRequest } from 'fastify';
-import { Model, ObjectId } from 'mongoose';
+import { Model } from 'mongoose';
 import { compare, hash } from 'bcrypt';
 
 import { UserStatus, UserVerificationProviders } from '@modules/users/user.enum';
@@ -179,6 +178,10 @@ export class AuthService {
 	}
 
 	verifyUserStatus(user: User): boolean {
+		if (!user) {
+			throw new BadRequestException('User not found');
+		}
+
 		if (user.status !== UserStatus.ACTIVE) {
 			throw new UnauthorizedException('User is inactive');
 		}
@@ -228,9 +231,7 @@ export class AuthService {
 		return foundUser;
 	}
 
-	async refreshToken(req: FastifyRequest, clientInfo: ClientInfoData): Promise<TokenObject> {
-		const refreshToken = this.refreshTokenService.extractTokenFromHeader(req);
-
+	async refreshToken(refreshToken: string | undefined, clientInfo: ClientInfoData): Promise<TokenObject> {
 		if (!refreshToken) {
 			throw new UnauthorizedException(`Error verifying token : Token not found`);
 		}
@@ -238,11 +239,8 @@ export class AuthService {
 		return await this.refreshTokenService.refreshToken(refreshToken, clientInfo);
 	}
 
-	async logout(req: FastifyRequest): Promise<object> {
+	async logout(refreshToken: string | undefined): Promise<void> {
 		try {
-			// const accessToken = this.accessTokenService.extractTokenFromHeader(req);
-			const refreshToken = this.refreshTokenService.extractTokenFromHeader(req);
-
 			if (!refreshToken) {
 				throw new UnauthorizedException(`Error verifying token : Invalid Token`);
 			}
@@ -250,16 +248,12 @@ export class AuthService {
 			// await this.accessTokenService.revokeToken(accessToken);
 
 			await this.refreshTokenService.revokeToken(refreshToken);
-
-			return {
-				success: true,
-			};
 		} catch (err) {
 			throw new InternalServerErrorException(err.message);
 		}
 	}
 
-	async changePassword(userId: string, data: ChangePasswordDto): Promise<{ success: boolean }> {
+	async changePassword(userId: string, data: ChangePasswordDto): Promise<void> {
 		if (data.newPassword === data.oldPassword) {
 			throw new BadRequestException('The old password must be different from the New password');
 		}
@@ -283,22 +277,19 @@ export class AuthService {
 		await credentialsFound.save();
 
 		await this.refreshTokenService.revokeAllToken(userId);
-
-		return {
-			success: true,
-		};
 	}
 
-	async forgotPassword(dto: ForgotPasswordDto): Promise<{ verificationKey: string, check: ObjectId }> {
+	async forgotPassword(dto: ForgotPasswordDto): Promise<{ verificationKey: string, check: string }> {
 		const { email } = dto;
 
 		const user = await this.usersModel.findOne({ email });
 
-		this.verifyUserStatus(user);
-
 		if (!user) {
 			throw new BadRequestException('User not found');
 		}
+
+		this.verifyUserStatus(user);
+
 
 		const otpData = await this.otpService.generateOtp({ check: user.id, action: OtpActions.FORGOT_PASSWORD });
 

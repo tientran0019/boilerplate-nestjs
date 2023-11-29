@@ -37,10 +37,10 @@ export interface Filter {
 }
 
 @ApiTags('Users Management (Only admin can use this APIs)')
-// @ApiBearerAuth()
-// @Authorize({
-// 	allowedRoles: [UserRole.ADMIN],
-// })
+@ApiBearerAuth()
+@Authorize({
+	allowedRoles: [UserRole.ADMIN],
+})
 @UseInterceptors(Serializer(UserEntity))
 @Controller('users')
 export class UsersController {

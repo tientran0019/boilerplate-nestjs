@@ -31,6 +31,9 @@ export class MailService {
 	}
 
 	async sendUserVerification(email: string, otpData: { code: string, ttl: string | number }): Promise<SentMessageInfo> {
+		if (!email) {
+			return null;
+		}
 		return await this.mailerService.sendMail({
 			to: getEmailByEnv(email),
 			// from: '"Support Team" <support@example.com>', // override default from
@@ -44,6 +47,10 @@ export class MailService {
 	}
 
 	async sendEmailOtp(email: string, otpData: { code: string, ttl: string | number }): Promise<SentMessageInfo> {
+		if (!email) {
+			return null;
+		}
+
 		return await this.mailerService.sendMail({
 			to: getEmailByEnv(email),
 			subject: 'Verify your identity',
@@ -56,6 +63,10 @@ export class MailService {
 	}
 
 	async sendUserResetPassword(email: string, otpData: { code: string, ttl: string | number }): Promise<SentMessageInfo> {
+		if (!email) {
+			return null;
+		}
+
 		return await this.mailerService.sendMail({
 			to: getEmailByEnv(email),
 			subject: 'Password reset',
@@ -64,6 +75,19 @@ export class MailService {
 				ttl: convertMsToMinutesSeconds(otpData.ttl, false),
 				code: otpData.code,
 			},
+		});
+	}
+
+	async sendUserCreatedAccount(user: { email: string, password: string, fullName: string }): Promise<SentMessageInfo> {
+		if (!user.email) {
+			return null;
+		}
+
+		return await this.mailerService.sendMail({
+			to: getEmailByEnv(user.email),
+			subject: 'Your account has been created successfully',
+			template: './created-account',
+			context: user,
 		});
 	}
 }

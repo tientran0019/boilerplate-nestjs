@@ -5,8 +5,8 @@ import {
 	NotFoundException,
 	Patch,
 	Post,
-	Request,
 	UseGuards,
+	UseInterceptors,
 } from '@nestjs/common';
 import { AuthService } from './services/auth.service';
 import { CredentialsDto } from '@modules/auth/dto/credentials.dto';
@@ -26,11 +26,13 @@ import {
 import { VerifyDto } from './dto/verify.dto';
 import { VerifyRequestDto } from './dto/verify-request.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
-import { ObjectId } from 'mongoose';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { Throttle } from '@nestjs/throttler';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { ClientInfo } from './decorators/client-info.decorator';
+import Serializer from '@modules/base/interceptors/mongoose-class-serializer.interceptor';
+import { UserEntity } from '@modules/users/entities/user.entity';
+import { Token } from './decorators/token.decorator';
 
 @ApiTags('Auth')
 @Throttle({ default: { limit: 10, ttl: 60000 } })
@@ -45,6 +47,7 @@ export class AuthController {
 	@Authorize({
 		allowedRoles: [Permissions.UNAUTHENTICATED],
 	})
+	@UseInterceptors(Serializer(UserEntity))
 	@Post('login')
 	async login(@ClientInfo() clientInfo: ClientInfoData, @Body() dto: CredentialsDto): Promise<ResLoginObject> {
 		return await this.authService.login(dto, clientInfo);
@@ -68,6 +71,7 @@ export class AuthController {
 	@Authorize({
 		allowedRoles: [Permissions.EVERYONE],
 	})
+	@UseInterceptors(Serializer(UserEntity))
 	@Post('verify')
 	async verify(@Body() dto: VerifyDto): Promise<User> {
 		return await this.authService.verify(dto);
@@ -78,11 +82,12 @@ export class AuthController {
 	@ApiOkResponse({
 		status: 200,
 		// description: 'The found record',
-		type: SignupDto,
+		type: UserEntity,
 	})
 	@Authorize({
 		allowedRoles: [Permissions.AUTHENTICATED],
 	})
+	@UseInterceptors(Serializer(UserEntity))
 	@Get('me')
 	async getProfile(@CurrentUser() currentUser: UserProfileForToken): Promise<User> {
 		const user = await this.authService.findById(currentUser.id);
@@ -97,13 +102,12 @@ export class AuthController {
 	@ApiOperation({ summary: 'Update current user profile' })
 	@ApiBearerAuth()
 	@ApiOkResponse({
-		status: 200,
-		// description: 'The found record',
-		type: SignupDto,
+		type: UserEntity,
 	})
 	@Authorize({
 		allowedRoles: [Permissions.AUTHENTICATED],
 	})
+	@UseInterceptors(Serializer(UserEntity))
 	@Patch('update-profile')
 	async updateProfile(@CurrentUser() currentUser: UserProfileForToken, @Body() dto: UpdateProfileDto): Promise<User> {
 		const user = await this.authService.updateProfile(currentUser.id, dto);
@@ -117,19 +121,22 @@ export class AuthController {
 		allowedRoles: [Permissions.AUTHENTICATED],
 	})
 	@Patch('change-password')
-	async changePassword(@CurrentUser() currentUser: UserProfileForToken, @Body() dto: ChangePasswordDto): Promise<object> {
-		return await this.authService.changePassword(currentUser.id, dto);
+	async changePassword(@CurrentUser() currentUser: UserProfileForToken, @Body() dto: ChangePasswordDto): Promise<{ success: boolean }> {
+		await this.authService.changePassword(currentUser.id, dto);
+
+		return {
+			success: true,
+		};
 	}
 
 	@ApiOperation({ summary: 'User signup' })
 	@ApiOkResponse({
-		status: 200,
-		// description: 'The found record',
-		type: SignupDto,
+		type: UserEntity,
 	})
 	@Authorize({
 		allowedRoles: [Permissions.UNAUTHENTICATED],
 	})
+	@UseInterceptors(Serializer(UserEntity))
 	@Post('signup')
 	async signUp(@Body() dto: SignupDto): Promise<User> {
 		return await this.authService.signup(dto);
@@ -141,7 +148,7 @@ export class AuthController {
 		allowedRoles: [Permissions.UNAUTHENTICATED],
 	})
 	@Post('forgot-password')
-	async forgotPassword(@Body() dto: ForgotPasswordDto): Promise<{ verificationKey: string; check: ObjectId; }> {
+	async forgotPassword(@Body() dto: ForgotPasswordDto): Promise<{ verificationKey: string; check: string; }> {
 		return await this.authService.forgotPassword(dto);
 	}
 
@@ -158,14 +165,18 @@ export class AuthController {
 	@ApiOperation({ summary: 'Refresh the access token by refresh token' })
 	@UseGuards(RefreshJwtGuard)
 	@Post('refresh')
-	async refreshToken(@Request() req): Promise<TokenObject> {
-		return await this.authService.refreshToken(req, req.clientInfo as ClientInfoData);
+	async refreshToken(@Token('Refresh') refreshToken: string | undefined, @ClientInfo() clientInfo: ClientInfoData): Promise<TokenObject> {
+		return await this.authService.refreshToken(refreshToken, clientInfo);
 	}
 
 	@ApiOperation({ summary: 'Logout' })
 	@UseGuards(RefreshJwtGuard)
 	@Post('logout')
-	async logout(@Request() req): Promise<object> {
-		return await this.authService.logout(req);
+	async logout(@Token('Refresh') refreshToken: string | undefined): Promise<{ success: boolean; }> {
+		await this.authService.logout(refreshToken);
+
+		return {
+			success: true,
+		};
 	}
 }

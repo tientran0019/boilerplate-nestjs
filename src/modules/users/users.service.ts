@@ -9,15 +9,18 @@
 * Last updated by: Tien Tran
 *------------------------------------------------------- */
 
-import { ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { User } from './schemas/user.schema';
 
 // import omit from 'tily/object/omit';
 import { InjectModel } from '@nestjs/mongoose';
-import { FilterQuery, Model, PopulateOptions } from 'mongoose';
+import { FilterQuery, Model } from 'mongoose';
 import { UserStatus } from '@modules/users/user.enum';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+// import { UserCredentials } from '@modules/auth/schemas/user-credentials.schema';
+import { AuthService } from '@modules/auth/services/auth.service';
+import { MailService } from '@modules/mail/mail.service';
 
 export type FindAllResponse<T> = {
 	total: number;
@@ -30,7 +33,9 @@ export type FindAllResponse<T> = {
 export class UsersService {
 	constructor(
 		@InjectModel(User.name)
-		private readonly usersModel: Model<User>
+		private readonly usersModel: Model<User>,
+		private authService: AuthService,
+		private mailService: MailService,
 	) { }
 
 	async findByEmail(email: string): Promise<User> {
@@ -47,9 +52,20 @@ export class UsersService {
 		return true;
 	}
 
-	async create(createUserDto: CreateUserDto): Promise<User> {
-		const newUser = new this.usersModel(createUserDto);
-		return await newUser.save();
+	async create(dto: CreateUserDto): Promise<User> {
+		const { sendEmail, ...userData } = dto;
+
+		const newUser = await this.authService.signup(userData);
+
+		if (sendEmail) {
+			await this.mailService.sendUserCreatedAccount({
+				email: dto.email,
+				fullName: dto.fullName,
+				password: dto.password,
+			});
+		}
+
+		return newUser;
 	}
 
 	async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
@@ -136,7 +152,7 @@ export class UsersService {
 	}
 
 	async delete(id: string): Promise<User> {
-		const deleteData = await this.usersModel.findByIdAndDelete(id);
+		const deleteData = await this.usersModel.findByIdAndUpdate(id, { _isDeleted: true, _deletedAt: Date.now() });
 		if (!deleteData) {
 			throw new NotFoundException(`User #${id} not found`);
 		}
