@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AUTHORIZE_KEY } from '../decorators/authorize.decorator';
-import { AuthorizationMetadata, ClientInfo, Permissions, UserProfileForToken } from '../auth.interface';
+import { AuthorizationMetadata, ClientInfoData, Permissions, UserProfileForToken } from '../auth.interface';
 import { AccessTokenService } from '../services/access-token.service';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
@@ -36,7 +36,7 @@ export class AuthorizeGuard implements CanActivate {
 			request['currentUser'] = currentUser;
 		}
 
-		const clientInfo: ClientInfo = {
+		const clientInfo: ClientInfoData = {
 			useragent: request.headers['user-agent'],
 			clientId: request.headers['x-client-id'],
 			address: request.headers['cf-ipcountry'],

@@ -6,7 +6,7 @@ import { Model, ObjectId } from 'mongoose';
 import { compare, hash } from 'bcrypt';
 
 import { UserStatus, UserVerificationProviders } from '@modules/users/user.enum';
-import { ClientInfo, ResLoginObject, TokenObject } from '@modules/auth/auth.interface';
+import { ClientInfoData, ResLoginObject, TokenObject } from '@modules/auth/auth.interface';
 import { UserCredentials } from '@modules/auth/schemas/user-credentials.schema';
 import { User } from '@modules/users/schemas/user.schema';
 
@@ -60,7 +60,7 @@ export class AuthService {
 		return newUser;
 	}
 
-	async login(dto: CredentialsDto, clientInfo: ClientInfo): Promise<ResLoginObject> {
+	async login(dto: CredentialsDto, clientInfo: ClientInfoData): Promise<ResLoginObject> {
 		const user = await this.verifyCredentials(dto);
 
 		this.verifyUserStatus(user);
@@ -228,7 +228,7 @@ export class AuthService {
 		return foundUser;
 	}
 
-	async refreshToken(req: FastifyRequest, clientInfo: ClientInfo): Promise<TokenObject> {
+	async refreshToken(req: FastifyRequest, clientInfo: ClientInfoData): Promise<TokenObject> {
 		const refreshToken = this.refreshTokenService.extractTokenFromHeader(req);
 
 		if (!refreshToken) {

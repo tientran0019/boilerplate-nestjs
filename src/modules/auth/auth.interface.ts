@@ -62,10 +62,10 @@ export interface AuthorizationMetadata {
 
 export interface RequestWithAuth extends FastifyRequest {
 	currentUser: UserProfileForToken;
-	clientInfo: ClientInfo;
+	clientInfo: ClientInfoData;
 }
 
-export interface ClientInfo {
+export interface ClientInfoData {
 	ip: string;
 	useragent: string;
 	location?: [number, number];

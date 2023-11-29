@@ -11,7 +11,7 @@ import {
 import { AuthService } from './services/auth.service';
 import { CredentialsDto } from '@modules/auth/dto/credentials.dto';
 import { RefreshJwtGuard } from '@modules/auth/guards/refresh.guard';
-import { Permissions, ResLoginObject, TokenObject } from '@modules/auth/auth.interface';
+import { ClientInfoData, Permissions, ResLoginObject, TokenObject, UserProfileForToken } from '@modules/auth/auth.interface';
 import { User } from '@modules/users/schemas/user.schema';
 import { Authorize } from '@modules/auth/decorators/authorize.decorator';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -29,6 +29,8 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ObjectId } from 'mongoose';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { Throttle } from '@nestjs/throttler';
+import { CurrentUser } from './decorators/current-user.decorator';
+import { ClientInfo } from './decorators/client-info.decorator';
 
 @ApiTags('Auth')
 @Throttle({ default: { limit: 10, ttl: 60000 } })
@@ -44,8 +46,8 @@ export class AuthController {
 		allowedRoles: [Permissions.UNAUTHENTICATED],
 	})
 	@Post('login')
-	async login(@Request() req, @Body() dto: CredentialsDto): Promise<ResLoginObject> {
-		return await this.authService.login(dto, req.clientInfo);
+	async login(@ClientInfo() clientInfo: ClientInfoData, @Body() dto: CredentialsDto): Promise<ResLoginObject> {
+		return await this.authService.login(dto, clientInfo);
 	}
 
 	@ApiOperation({ summary: 'Request verification via Email or Phone number' })
@@ -82,8 +84,8 @@ export class AuthController {
 		allowedRoles: [Permissions.AUTHENTICATED],
 	})
 	@Get('me')
-	async getProfile(@Request() req): Promise<User> {
-		const user = await this.authService.findById(req.currentUser.id);
+	async getProfile(@CurrentUser() currentUser: UserProfileForToken): Promise<User> {
+		const user = await this.authService.findById(currentUser.id);
 
 		if (!user) {
 			throw new NotFoundException('User not found');
@@ -103,8 +105,8 @@ export class AuthController {
 		allowedRoles: [Permissions.AUTHENTICATED],
 	})
 	@Patch('update-profile')
-	async updateProfile(@Request() req, @Body() dto: UpdateProfileDto): Promise<User> {
-		const user = await this.authService.updateProfile(req.currentUser.id, dto);
+	async updateProfile(@CurrentUser() currentUser: UserProfileForToken, @Body() dto: UpdateProfileDto): Promise<User> {
+		const user = await this.authService.updateProfile(currentUser.id, dto);
 
 		return user;
 	}
@@ -115,8 +117,8 @@ export class AuthController {
 		allowedRoles: [Permissions.AUTHENTICATED],
 	})
 	@Patch('change-password')
-	async changePassword(@Request() req, @Body() dto: ChangePasswordDto): Promise<object> {
-		return await this.authService.changePassword(req.currentUser.id, dto);
+	async changePassword(@CurrentUser() currentUser: UserProfileForToken, @Body() dto: ChangePasswordDto): Promise<object> {
+		return await this.authService.changePassword(currentUser.id, dto);
 	}
 
 	@ApiOperation({ summary: 'User signup' })
@@ -157,7 +159,7 @@ export class AuthController {
 	@UseGuards(RefreshJwtGuard)
 	@Post('refresh')
 	async refreshToken(@Request() req): Promise<TokenObject> {
-		return await this.authService.refreshToken(req, req.clientInfo);
+		return await this.authService.refreshToken(req, req.clientInfo as ClientInfoData);
 	}
 
 	@ApiOperation({ summary: 'Logout' })

@@ -5,7 +5,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { RefreshToken } from '../schemas/refresh-token.schema';
 import { Model } from 'mongoose';
 import { AccessTokenService } from './access-token.service';
-import { ClientInfo, TokenObject } from '../auth.interface';
+import { ClientInfoData, TokenObject } from '../auth.interface';
 import { FastifyRequest } from 'fastify';
 import { User } from '@modules/users/schemas/user.schema';
 import async from 'async';
@@ -29,7 +29,7 @@ export class RefreshTokenService {
 	async generateToken(
 		userId: string,
 		token: string,
-		clientInfo: ClientInfo,
+		clientInfo: ClientInfoData,
 	): Promise<string> {
 		const data = {
 			token: uuidv4(),
@@ -54,7 +54,7 @@ export class RefreshTokenService {
 	 * Refresh the access token bound with the given refresh token.
 	 */
 
-	async refreshToken(refreshToken: string, clientInfo: ClientInfo): Promise<TokenObject> {
+	async refreshToken(refreshToken: string, clientInfo: ClientInfoData): Promise<TokenObject> {
 		try {
 			if (!refreshToken) {
 				throw new Error(
