@@ -55,6 +55,7 @@ export class RefreshTokenService {
 	 */
 
 	async refreshToken(refreshToken: string, clientInfo: ClientInfoData): Promise<TokenObject> {
+		console.log('DEV ~ file: refresh-token.service.ts:58 ~ RefreshTokenService ~ refreshToken ~ clientInfo:', clientInfo);
 		try {
 			if (!refreshToken) {
 				throw new Error(
@@ -63,9 +64,10 @@ export class RefreshTokenService {
 			}
 
 			const userRefreshData = await this.verifyToken(refreshToken);
+			console.log('DEV ~ file: refresh-token.service.ts:67 ~ RefreshTokenService ~ refreshToken ~ userRefreshData:', userRefreshData);
 
 			// compare the ip or useragent attributes in the clientInfo object to the ip in the database
-			if (clientInfo.ip !== userRefreshData.ip || clientInfo.useragent !== userRefreshData.userAgent) {
+			if (clientInfo.ip !== userRefreshData.ip || clientInfo.useragent !== userRefreshData.useragent) {
 				// Force logout of all sessions of this user if the client info different from the client info that was stored in db when the user login
 				this.revokeAllToken(userRefreshData.userId.toString());
 				throw new Error('Client is invalid');

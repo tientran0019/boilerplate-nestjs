@@ -50,7 +50,7 @@ export class RefreshToken extends Document {
 	ip: string;
 
 	@Prop()
-	userAgent: string;
+	useragent: string;
 
 	@Prop()
 	address: string;
