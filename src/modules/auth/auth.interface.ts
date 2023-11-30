@@ -21,7 +21,7 @@ export type TokenObject = {
 };
 
 export interface ResLoginObject {
-	user: User,
+	data: User,
 	backendTokens?: {
 		accessToken: string,
 		refreshToken: string,

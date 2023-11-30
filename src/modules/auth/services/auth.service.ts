@@ -51,12 +51,40 @@ export class AuthService {
 
 		const newUser = await this.usersModel.create(userData);
 
-		await this.userCredentialsModel.create({
-			password: await hash(password, 10),
-			userId: newUser.id,
-		});
+		try {
+			await this.userCredentialsModel.create({
+				password: await hash(password, 10),
+				userId: newUser.id,
+			});
+		} catch (error) {
+			await this.usersModel.deleteOne({ email: dto.email });
+		}
 
 		return newUser;
+
+		// TODO: Transaction numbers are only allowed on a replica set member or mongos
+		// const session = await this.usersModel.startSession();
+
+		// session.startTransaction();
+		// try {
+		// 	const newUser = await new this.usersModel(userData).save({ session });
+
+		// 	await this.userCredentialsModel.create({
+		// 		password: await hash(password, 10),
+		// 		userId: newUser.id,
+		// 	}, { session });
+
+		// 	await session.commitTransaction();
+		// 	session.endSession();
+
+		// 	return newUser;
+		// } catch (error) {
+		// 	// If an error occurred, abort the whole transaction and
+		// 	// undo any changes that might have happened
+		// 	await session.abortTransaction();
+		// 	session.endSession();
+		// 	throw error;
+		// }
 	}
 
 	async login(dto: CredentialsDto, clientInfo: ClientInfoData): Promise<ResLoginObject> {
@@ -78,7 +106,7 @@ export class AuthService {
 				}
 
 				return {
-					user,
+					data: user,
 					verificationKey: otpData.verificationKey,
 				};
 			}
@@ -89,7 +117,7 @@ export class AuthService {
 		await this.updateLastLogin(user);
 
 		return {
-			user,
+			data: user,
 			backendTokens: {
 				accessToken: token,
 				refreshToken: await this.refreshTokenService.generateToken(user.id, token, clientInfo),

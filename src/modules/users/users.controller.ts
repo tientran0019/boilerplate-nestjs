@@ -19,22 +19,9 @@ import { UserEntity } from './entities/user.entity';
 import Serializer from '@modules/base/interceptors/mongoose-class-serializer.interceptor';
 import { Authorize } from '@modules/auth/decorators/authorize.decorator';
 import { UserRole } from './user.enum';
-import { FilterQuery, ProjectionFields } from 'mongoose';
+import { ProjectionFields } from 'mongoose';
 import { QueryFilterDto } from '@modules/base/dto/filter.dto';
-
-export interface Paths {
-	path: string | string[],
-	select?: string | any,
-	match?: any
-}
-
-export interface Filter {
-	limit?: number,
-	skip?: number,
-	where?: FilterQuery<User>,
-	projection?: ProjectionFields<User>,
-	populate?: Paths,
-}
+import { Filter, FilterQuery } from '@modules/base/decorators/filter.decorator';
 
 @ApiTags('Users Management (Only admin can use this APIs)')
 @ApiBearerAuth()
@@ -61,6 +48,9 @@ export class UsersController {
 		return this.usersService.create(dto);
 	}
 
+	// @SerializeOptions({
+	// 	excludePrefixes: ['first', 'last'],
+	// })
 	@ApiOperation({
 		summary: 'Admin gets all users',
 		description: `
@@ -68,15 +58,23 @@ export class UsersController {
 		`,
 	})
 	@ApiQuery({
-		name: 'filters',
+		// name: 'filter',
 		required: false,
-		// type: 'Object',
+		type: QueryFilterDto<UserEntity>,
+		// type: 'object',
+		example: {
+			'filter': {
+				'sort': {
+					'role': 1,
+				},
+			},
+		},
 	})
 	@Get()
-	async findAll(@Query('filters') filters = '{}'): Promise<{ items: User[], total: number, limit: number, skip: number }> {
-		console.log('DEV ~ file: users.controller.ts:32 ~ UsersController ~ findAll ~ filter:', filters);
+	async findAll(@Filter() filter): Promise<{ items: User[], total: number, limit: number, skip: number }> {
+		console.log('DEV ~ file: users.controller.ts:32 ~ UsersController ~ findAll ~ filter:', filter);
 
-		return this.usersService.findAll(JSON.parse(filters));
+		return this.usersService.findAll(filter);
 	}
 
 	@ApiOperation({

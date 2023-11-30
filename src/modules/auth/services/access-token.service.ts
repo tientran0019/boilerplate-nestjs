@@ -59,7 +59,6 @@ export class AccessTokenService {
 
 			return true;
 		} catch (error) {
-			console.log('DEV ~ file: accesstoken.service.ts:59 ~ AccessTokenService ~ revokeToken ~ error:', error);
 			// ignore
 			return false;
 		}

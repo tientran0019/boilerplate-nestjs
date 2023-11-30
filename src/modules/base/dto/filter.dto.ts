@@ -1,23 +1,14 @@
 import { Type } from 'class-transformer';
 import { IsOptional, IsInt } from 'class-validator';
-import { FilterQuery, ProjectionFields } from 'mongoose';
+import { FilterQuery } from '../decorators/filter.decorator';
+import { ApiProperty } from '@nestjs/swagger';
 
 
-export interface Paths {
-	path: string | string[],
-	select?: string | any,
-	match?: any
-}
-
-export interface Filter {
-	limit?: number,
-	skip?: number,
-	where?: object,
-	projection?: object,
-	populate?: Paths,
-}
-
-export class QueryFilterDto {
+export class QueryFilterDto<T> {
+	// @ApiProperty({
+	// 	// example: FilterQuery<T>,
+	// 	format: 'string',
+	// })
 	@IsOptional()
-	filter?: Filter;
+	filter?: FilterQuery<T>;
 }

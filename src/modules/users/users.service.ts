@@ -14,13 +14,15 @@ import { User } from './schemas/user.schema';
 
 // import omit from 'tily/object/omit';
 import { InjectModel } from '@nestjs/mongoose';
-import { FilterQuery, Model } from 'mongoose';
+import { Model } from 'mongoose';
 import { UserStatus } from '@modules/users/user.enum';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 // import { UserCredentials } from '@modules/auth/schemas/user-credentials.schema';
 import { AuthService } from '@modules/auth/services/auth.service';
 import { MailService } from '@modules/mail/mail.service';
+import { FilterQuery } from '@modules/base/decorators/filter.decorator';
+import { UserEntity } from './entities/user.entity';
 
 export type FindAllResponse<T> = {
 	total: number;
@@ -96,26 +98,16 @@ export class UsersService {
 	// }
 
 
-	async findAll(
-		filters: {
-			where: FilterQuery<User>,
-			fields?: string;
-			populate?: string | string[]; // | PopulateOptions | PopulateOptions[];
-			skip?: number;
-			limit?: number;
-			sort?: object;
-		},
-	): Promise<FindAllResponse<User>> {
-		console.log('DEV ~ file: users.service.ts:92 ~ UsersService ~ filters:', filters);
-		const { limit = 10, skip = 0, sort = {} } = filters;
+	async findAll(filter: FilterQuery<UserEntity>): Promise<FindAllResponse<User>> {
+		const { limit = 10, skip = 0, sort, fields, include, where = {} } = filter;
 
 		const [total, items] = await Promise.all([
-			this.usersModel.countDocuments({ ...filters.where, _isDeleted: false }),
-			this.usersModel.find({ ...filters.where, _isDeleted: false }, filters?.fields || '', {
+			this.usersModel.countDocuments({ ...where, _isDeleted: false }),
+			this.usersModel.find({ ...where, _isDeleted: false }, fields || '', {
 				skip,
 				limit,
 				sort,
-			}).populate(filters.populate),
+			}).populate(include),
 		]);
 		return {
 			total,
@@ -139,10 +131,6 @@ export class UsersService {
 
 	async findById(id: string): Promise<User> {
 		const existing = await this.usersModel.findById(id);
-
-		// console.log('DEV ~ file: users.service.ts:90 ~ UsersService ~ findById ~ existing:', existing._id.toString());
-		console.log('DEV ~ file: users.service.ts:90 ~ UsersService ~ findById ~ existing:', existing);
-		// console.log('DEV ~ file: users.service.ts:90 ~ UsersService ~ findById ~ existing:', existing.toObject());
 
 		if (!existing) {
 			throw new NotFoundException(`User #${id} not found`);

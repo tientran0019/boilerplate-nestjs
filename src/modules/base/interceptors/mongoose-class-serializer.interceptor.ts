@@ -19,13 +19,13 @@ function Serializer(
 		}
 
 		private prepareResponse(
-			response: PlainLiteralObject | PlainLiteralObject[] | { items: PlainLiteralObject[], [attr: string]: any } | { user: PlainLiteralObject, [attr: string]: any },
+			response: PlainLiteralObject | PlainLiteralObject[] | { items: PlainLiteralObject[], [field: string]: any } | { data: PlainLiteralObject, [field: string]: any },
 		) {
-			if (!Array.isArray(response) && response?.user) {
-				const user = this.prepareResponse(response.user);
+			if (!Array.isArray(response) && response?.data) {
+				const data = this.prepareResponse(response.data);
 				return {
 					...response,
-					user,
+					data,
 				};
 			}
 			if (!Array.isArray(response) && response?.items) {

@@ -24,6 +24,7 @@ export type UserDocument = HydratedDocument<User>;
 	toJSON: {
 		getters: true,
 		virtuals: true,
+		// flattenObjectIds: true,
 	},
 })
 export class User extends BaseSchema {

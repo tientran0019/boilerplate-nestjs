@@ -20,7 +20,7 @@ export default async function configSwagger(app: INestApplication) {
 	const httpAdapter = app.getHttpAdapter();
 	httpAdapter.use(
 		'/api-docs',
-		(req: Request, res: Response, next: NextFunction) => {
+		async (req: Request, res: Response, next: NextFunction) => {
 			function parseAuthHeader(input: string): { username: string; password: string } {
 				const [, encodedPart] = input.split(' ');
 
@@ -60,9 +60,11 @@ export default async function configSwagger(app: INestApplication) {
 		},
 	);
 	SwaggerModule.setup('api-docs', app, document, {
-		swaggerOptions: { persistAuthorization: true },
+		swaggerOptions: {
+			persistAuthorization: true,
+		},
 		customJs: '/swagger-custom.js',
 		customSiteTitle: 'Nestjs Documents',
-		customfavIcon: '/swagger.ico',
+		customfavIcon: '/favicon.ico',
 	});
 }

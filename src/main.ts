@@ -13,7 +13,7 @@ import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 
 import { AppModule } from './app.module';
-import configSwagger from '@configs/api-docs.config';
+import configSwagger from '@configs/swagger.config';
 import configHelmet from '@configs/helmet.config';
 import configCors from '@configs/cors.config';
 import configCompression from '@configs/compression.config';
@@ -21,6 +21,7 @@ import configCsrf from '@configs/csrf.config';
 import configVersion from '@configs/version.config';
 import configGlobalPipes from '@configs/global-pipes.config';
 import { Logger } from '@nestjs/common';
+import { join } from 'path';
 
 async function bootstrap() {
 	const logger = new Logger(bootstrap.name);
@@ -30,6 +31,11 @@ async function bootstrap() {
 		new FastifyAdapter({ logger: true }),
 		{ abortOnError: false },
 	);
+
+	// @ts-ignore
+	app.useStaticAssets({
+		root: join(__dirname, '../public'),
+	});
 
 	await configGlobalPipes(app);
 

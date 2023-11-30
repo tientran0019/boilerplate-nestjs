@@ -6,7 +6,7 @@ export enum UserRole {
 
 export enum UserStatus {
 	ACTIVE = 'ACTIVE',
-	// PADDING = 'PADDING',
+	// PADDING = 'PADDING', // TODO just for the invite users feature, let's implement in the future
 	INACTIVE = 'INACTIVE',
 }
 
