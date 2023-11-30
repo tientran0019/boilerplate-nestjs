@@ -11,12 +11,19 @@ export interface FilterQuery<T> {
 	skip?: number,
 	where?: IFilterQuery<T>,
 	sort?: { [field: string]: Criteria },
-	fields?: ProjectionFields<T>,
+	fields?: ProjectionFields<T> | string[] | string,
 	include?: PopulateOptions | (PopulateOptions | string)[],
 }
 
+export type PaginatedResource<T> = {
+    items: T[];
+    total: number;
+    skip: number;
+    limit: number;
+};
+
 export const Filter = createParamDecorator(
-	(data: 'where' | 'skip' | 'fields' | 'include' | 'sort', ctx: ExecutionContext): FilterQuery<Document> => {
+	(data: keyof FilterQuery<Document>, ctx: ExecutionContext) => {
 		const request = ctx.switchToHttp().getRequest();
 
 		const filter = (request.query?.filter ? JSON.parse(request.query?.filter || '{}') : qs.parse(
@@ -41,9 +48,6 @@ export const Filter = createParamDecorator(
 				},
 			},
 		).filter) || {};
-		console.log('DEV ~ file: filter.decorator.ts:22 ~ request.query:', qs.parse(qs.stringify(request.query), { ignoreQueryPrefix: true }));
-		console.log('DEV ~ file: filter.decorator.ts:22 ~ request.query:', request.url);
-		console.log('DEV ~ file: filter.decorator.ts:22 ~ request.query:', request.query);
 
 		return data ? filter?.[data] : filter;
 	},

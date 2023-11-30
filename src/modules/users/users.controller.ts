@@ -9,8 +9,8 @@
 * Last updated by: Tien Tran
 *------------------------------------------------------- */
 
-import { Body, ClassSerializerInterceptor, Controller, Get, Param, Patch, Post, Query, UseInterceptors } from '@nestjs/common';
-import { ApiBearerAuth, ApiCreatedResponse, ApiDefaultResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags, getSchemaPath } from '@nestjs/swagger';
+import { Body, Controller, DefaultValuePipe, Delete, Get, Param, Patch, Post, UseInterceptors } from '@nestjs/common';
+import { ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { UsersService } from '@modules/users/users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -19,9 +19,9 @@ import { UserEntity } from './entities/user.entity';
 import Serializer from '@modules/base/interceptors/mongoose-class-serializer.interceptor';
 import { Authorize } from '@modules/auth/decorators/authorize.decorator';
 import { UserRole } from './user.enum';
-import { ProjectionFields } from 'mongoose';
-import { QueryFilterDto } from '@modules/base/dto/filter.dto';
-import { Filter, FilterQuery } from '@modules/base/decorators/filter.decorator';
+import { FilterQueryDto, FindByIdQueryDto } from '@modules/base/dto/filter.dto';
+import { Filter, FilterQuery, PaginatedResource } from '@modules/base/decorators/filter.decorator';
+import { RequiredValuePipe } from '@modules/base/pipes/required.pipe';
 
 @ApiTags('Users Management (Only admin can use this APIs)')
 @ApiBearerAuth()
@@ -58,22 +58,15 @@ export class UsersController {
 		`,
 	})
 	@ApiQuery({
-		// name: 'filter',
 		required: false,
-		type: QueryFilterDto<UserEntity>,
-		// type: 'object',
-		example: {
-			'filter': {
-				'sort': {
-					'role': 1,
-				},
-			},
-		},
+		description: 'Filter Query object',
+		explode: true,
+		type: FilterQueryDto<UserEntity>,
 	})
 	@Get()
-	async findAll(@Filter() filter): Promise<{ items: User[], total: number, limit: number, skip: number }> {
-		console.log('DEV ~ file: users.controller.ts:32 ~ UsersController ~ findAll ~ filter:', filter);
-
+	async findAll(@Filter() filter: FilterQuery<UserEntity>): Promise<PaginatedResource<UserEntity>> {
+		// TODO: @Query('filter', new ParseFilterPipe()) filter: FilterDto
+		// để tận dụng được việc valide của dto
 		return this.usersService.findAll(filter);
 	}
 
@@ -83,16 +76,18 @@ export class UsersController {
 		* Only admin can use this API
 		`,
 	})
-	@Get(':id')
+	@ApiQuery({
+		required: false,
+		description: 'Filter Query object',
+		explode: true,
+		type: FindByIdQueryDto<UserEntity>,
+	})
 	@ApiOkResponse({
 		type: UserEntity,
 	})
-	async findOne(@Param('id') id: string): Promise<User> {
-		const user = await this.usersService.findById(id);
-		console.log('DEV ~ file: users.controller.ts:44 ~ UsersController ~ findOne ~ user:', user);
-
-		return user;
-		// return new UserEntity(user);
+	@Get(':id')
+	async findById(@Param('id', new RequiredValuePipe()) id: string, @Filter() filter: FilterQuery<UserEntity>): Promise<UserEntity> {
+		return await this.usersService.findById(id, filter);
 	}
 
 	@ApiOperation({
@@ -101,15 +96,26 @@ export class UsersController {
 		* Only admin can use this API
 		`,
 	})
-	// @ApiParam({
-	// 	name: 'id',
-	// 	type: String,
-	// })
 	@ApiOkResponse({
 		type: UserEntity,
 	})
 	@Patch(':id')
-	async update(@Param('id') id: string, @Body() updateArticleDto: UpdateUserDto): Promise<User> {
-		return this.usersService.update(id, updateArticleDto);
+	async update(@Param('id', new RequiredValuePipe()) id: string, @Body() updateDto: UpdateUserDto): Promise<User> {
+		return this.usersService.update(id, updateDto);
+	}
+
+
+	@ApiOperation({
+		summary: 'Admin deletes the user data',
+		description: `
+		* Only admin can use this API
+		`,
+	})
+	@ApiOkResponse({
+		type: UserEntity,
+	})
+	@Delete(':id')
+	async delete(@Param('id', new RequiredValuePipe()) id: string): Promise<User> {
+		return this.usersService.delete(id);
 	}
 }

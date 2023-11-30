@@ -281,6 +281,14 @@ export class AuthService {
 		}
 	}
 
+	async logoutAllSession(userId: string, refreshToken?: string | undefined): Promise<void> {
+		try {
+			await this.refreshTokenService.revokeAllToken(userId, refreshToken);
+		} catch (err) {
+			throw new InternalServerErrorException(err.message);
+		}
+	}
+
 	async changePassword(userId: string, data: ChangePasswordDto): Promise<void> {
 		if (data.newPassword === data.oldPassword) {
 			throw new BadRequestException('The old password must be different from the New password');

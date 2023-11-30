@@ -131,9 +131,9 @@ export class RefreshTokenService {
 		}
 	}
 
-	async revokeAllToken(userId: string): Promise<void> {
+	async revokeAllToken(userId: string, refreshToken?: string): Promise<void> {
 		try {
-			const rfs = await this.refreshTokenModel.find({ userId, revoked: false }) || [];
+			const rfs = await this.refreshTokenModel.find({ userId, revoked: false, refreshToken: { $ne: refreshToken } }) || [];
 
 			await async.eachLimit(rfs, 10, async (rf: RefreshToken) => {
 				await this.revokeCurrentToken(rf.currentToken);

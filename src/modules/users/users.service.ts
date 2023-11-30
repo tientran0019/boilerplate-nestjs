@@ -21,15 +21,8 @@ import { UpdateUserDto } from './dto/update-user.dto';
 // import { UserCredentials } from '@modules/auth/schemas/user-credentials.schema';
 import { AuthService } from '@modules/auth/services/auth.service';
 import { MailService } from '@modules/mail/mail.service';
-import { FilterQuery } from '@modules/base/decorators/filter.decorator';
+import { FilterQuery, PaginatedResource } from '@modules/base/decorators/filter.decorator';
 import { UserEntity } from './entities/user.entity';
-
-export type FindAllResponse<T> = {
-	total: number;
-	limit: number;
-	skip: number;
-	items: T[];
-};
 
 @Injectable()
 export class UsersService {
@@ -78,27 +71,7 @@ export class UsersService {
 		return existing;
 	}
 
-	// async findAll(filter: any): Promise<{ items: User[], total: number, limit: number, skip: number }> {
-	// 	const { limit, skip, where = {}, projection = {}, populate = {} } = filter;
-
-	// 	const total = await this.usersModel.countDocuments(where, { _id: true }).exec();
-
-	// 	const items = await this.usersModel.find(where, projection).limit(limit).skip(skip).populate(populate.path).lean();
-
-	// 	if (!items) {
-	// 		throw new NotFoundException('User items not found!');
-	// 	}
-
-	// 	return {
-	// 		items,
-	// 		total,
-	// 		skip,
-	// 		limit,
-	// 	};
-	// }
-
-
-	async findAll(filter: FilterQuery<UserEntity>): Promise<FindAllResponse<User>> {
+	async findAll(filter: FilterQuery<UserEntity>): Promise<PaginatedResource<UserEntity>> {
 		const { limit = 10, skip = 0, sort, fields, include, where = {} } = filter;
 
 		const [total, items] = await Promise.all([
@@ -111,39 +84,39 @@ export class UsersService {
 		]);
 		return {
 			total,
-			items,
+			items: items as UserEntity[],
 			skip,
 			limit,
 		};
 	}
 
-	async find(query: any): Promise<User[]> {
-		const { limit, skip, filter = {} } = query;
-		const data = await this.usersModel.find(filter, {}, {}).limit(limit).skip(skip).exec();
-		console.log('DEV ~ file: users.service.ts:78 ~ UsersService ~ find ~ data:', data);
+	async findById(id: string, filter: FilterQuery<UserEntity>): Promise<UserEntity> {
+		const { fields, include } = filter;
 
-		if (!data) {
-			throw new NotFoundException('Users data not found!');
-		}
+		const existing = await this.usersModel.findById(id, fields || '').populate(include);
 
-		return data;
-	}
-
-	async findById(id: string): Promise<User> {
-		const existing = await this.usersModel.findById(id);
-
-		if (!existing) {
+		if (!existing || existing?._isDeleted) {
 			throw new NotFoundException(`User #${id} not found`);
 		}
 
-		return existing;
+		return existing as UserEntity;
 	}
 
 	async delete(id: string): Promise<User> {
-		const deleteData = await this.usersModel.findByIdAndUpdate(id, { _isDeleted: true, _deletedAt: Date.now() });
+		const deleteData = await this.usersModel.findById(id);
+
 		if (!deleteData) {
 			throw new NotFoundException(`User #${id} not found`);
 		}
+
+		deleteData.email = 'deleted_' + deleteData.email;
+		deleteData._isDeleted = true;
+		deleteData._deletedAt = Date.now();
+
+		await deleteData.save();
+
+		await this.authService.logoutAllSession(id);
+
 		return deleteData;
 	}
 }
