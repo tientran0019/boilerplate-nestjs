@@ -46,7 +46,7 @@ export class User extends BaseSchema {
 		lowercase: true,
 		trim: true,
 		match: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-		immutable: true,
+		// immutable: true,
 		type: String,
 	})
 	email: string;

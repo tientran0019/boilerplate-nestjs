@@ -94,6 +94,7 @@ export class UsersService {
 		const { fields, include } = filter;
 
 		const existing = await this.usersModel.findById(id, fields || '').populate(include);
+		console.log('DEV ~ file: users.service.ts:97 ~ UsersService ~ findById ~ existing:', existing);
 
 		if (!existing || existing?._isDeleted) {
 			throw new NotFoundException(`User #${id} not found`);
@@ -109,7 +110,8 @@ export class UsersService {
 			throw new NotFoundException(`User #${id} not found`);
 		}
 
-		deleteData.email = 'deleted_' + deleteData.email;
+		deleteData.email = 'deleted___' + deleteData.email;
+		deleteData.phone = 'deleted___' + deleteData.phone;
 		deleteData._isDeleted = true;
 		deleteData._deletedAt = Date.now();
 
