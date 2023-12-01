@@ -12,7 +12,7 @@
 import { ISendMailOptions, MailerService } from '@nestjs-modules/mailer';
 import { Injectable } from '@nestjs/common';
 import { SentMessageInfo } from 'nodemailer';
-import convertMsToMinutesSeconds from '@utils/msToMinutes';
+import convertMsToMinutesSeconds from '@utils/ms-to-minutes.util';
 
 const getEmailByEnv = (emails: string | string[]): string | string[] => {
 	if (process.env.NODE_ENV === 'development') {

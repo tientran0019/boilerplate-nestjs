@@ -9,4 +9,15 @@ export class BaseSchema extends Document {
 
 	@Prop()
 	_deletedAt: number; // using for soft delete
+
+	@Prop({
+		immutable: true,
+		match: /^\d{13}$/,
+	})
+	createdAt: number;
+
+	@Prop({
+		match: /^\d{13}$/,
+	})
+	updatedAt: number;
 }

@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, ObjectId } from 'mongoose';
 import * as otpGenerator from 'otp-generator';
-import { decrypt, encrypt } from '@utils/crypto';
+import { decrypt, encrypt } from '@utils/crypto.util';
 import { Otp } from './schemas/otp.schema';
 import { OtpActions } from '@modules/otp/otp.enum';
 

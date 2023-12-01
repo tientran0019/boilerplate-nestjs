@@ -29,17 +29,6 @@ export type UserDocument = HydratedDocument<User>;
 })
 export class User extends BaseSchema {
 	@Prop({
-		immutable: true,
-		match: /^\d{13}$/,
-	})
-	createdAt: number;
-
-	@Prop({
-		match: /^\d{13}$/,
-	})
-	updatedAt: number;
-
-	@Prop({
 		required: true,
 		unique: true,
 		index: true,

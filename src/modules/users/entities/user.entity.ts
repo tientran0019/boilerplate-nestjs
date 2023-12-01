@@ -1,8 +1,9 @@
 import { Exclude, Expose, Transform, Type } from 'class-transformer';
-import { UserRole, UserStatus, UserVerificationProviders } from '@modules/users/user.enum';
+import { UserGender, UserRole, UserStatus, UserVerificationProviders } from '@modules/users/user.enum';
 import { Address } from '../schemas/address.schema';
 import { ApiProperty } from '@nestjs/swagger';
 import { Deleted } from '@modules/base/decorators/deleted.decorator';
+import { IsEnum } from 'class-validator';
 
 // @Exclude()
 export class UserEntity {
@@ -34,12 +35,15 @@ export class UserEntity {
 	readonly email: string;
 
 	@Deleted()
-	readonly gender: string;
+	@IsEnum(UserGender)
+	readonly gender: UserGender;
 
 	@Deleted()
+	@IsEnum(UserRole)
 	readonly role: UserRole;
 
 	@Deleted()
+	@IsEnum(UserStatus)
 	readonly status: UserStatus;
 
 	@Deleted()
@@ -83,4 +87,8 @@ export class UserEntity {
 	// get username(): string {
 	// 	return this.email?.split('@')[0];
 	// }
+
+	constructor(partial: Partial<UserEntity>) {
+		Object.assign(this, partial);
+	}
 }
