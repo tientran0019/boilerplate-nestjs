@@ -1,6 +1,6 @@
 {
     "i18n-ally.localesPaths": [],
-    "commentTranslate.hover.enabled": true,
+    "commentTranslate.hover.enabled": false,
     "commentTranslate.targetLanguage": "vi",
     "commentTranslate.source": "Google",
     "commentTranslate.multiLineMerge": true

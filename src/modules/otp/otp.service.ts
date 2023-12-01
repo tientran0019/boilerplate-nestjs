@@ -30,12 +30,15 @@ export interface VerificationPayload {
 export interface OtpObject {
 	verificationKey: string,
 	code: string,
-	ttl: string | number,
+	ttl: string,
 	data: OtpPayload,
 }
 
 @Injectable()
 export class OtpService {
+	readonly ttl = process.env.OTP_EXPIRES_IN;
+	readonly secret = process.env.OTP_SECRET;
+
 	constructor(
 		@InjectModel(Otp.name)
 		private readonly otpModel: Model<Otp>,
@@ -46,13 +49,13 @@ export class OtpService {
 	};
 
 	private async generateVerificationKey(payload: OtpPayload): Promise<string> {
-		const key = await encrypt(payload, process.env.OTP_SECRET);
+		const key = await encrypt(payload, this.secret);
 
 		return key;
 	};
 
 	private async parseVerificationKey(token: string): Promise<OtpPayload> {
-		const payload = await decrypt(token, process.env.OTP_SECRET);
+		const payload = await decrypt(token, this.secret);
 
 		return payload as OtpPayload;
 	};
@@ -73,7 +76,7 @@ export class OtpService {
 		// Create OTP instance in DB
 		const otpInstance = await this.otpModel.create({
 			code,
-			ttl: process.env.OTP_EXPIRES_IN,
+			ttl: this.ttl,
 			action,
 		});
 
@@ -91,7 +94,7 @@ export class OtpService {
 		// if (email) {
 		// 	await this.mailService.sendEmailOtp(email, {
 		// 		code,
-		// 		ttl: process.env.OTP_EXPIRES_IN,
+		// 		ttl: this.ttl,
 		// 		userName,
 		// 	});
 		// }
@@ -99,7 +102,7 @@ export class OtpService {
 		return {
 			verificationKey,
 			code,
-			ttl: process.env.OTP_EXPIRES_IN,
+			ttl: this.ttl,
 			data: details,
 		};
 	};

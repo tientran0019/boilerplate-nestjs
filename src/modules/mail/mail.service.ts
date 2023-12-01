@@ -37,7 +37,7 @@ export class MailService {
 		return await this.mailerService.sendMail({
 			to: getEmailByEnv(email),
 			// from: '"Support Team" <support@example.com>', // override default from
-			subject: 'Welcome to Nestjs App! Confirm your Email',
+			subject: '[Nestjs Boilerplate] Welcome to Nestjs App! Confirm your Email',
 			template: './verification', // `.hbs` extension is appended automatically
 			context: { // ✏️ filling curly brackets with content
 				ttl: convertMsToMinutesSeconds(otpData.ttl, false),
@@ -53,7 +53,7 @@ export class MailService {
 
 		return await this.mailerService.sendMail({
 			to: getEmailByEnv(email),
-			subject: 'Verify your identity',
+			subject: '[Nestjs Boilerplate] Verify your identity',
 			template: './otp', // `.hbs` extension is appended automatically
 			context: { // ✏️ filling curly brackets with content
 				ttl: convertMsToMinutesSeconds(otpData.ttl, false),
@@ -69,11 +69,28 @@ export class MailService {
 
 		return await this.mailerService.sendMail({
 			to: getEmailByEnv(email),
-			subject: 'Password reset',
+			subject: '[Nestjs Boilerplate] Password reset',
 			template: './reset-password',
 			context: {
 				ttl: convertMsToMinutesSeconds(otpData.ttl, false),
 				code: otpData.code,
+			},
+		});
+	}
+
+	async sendUserTerminateRequest(emailData: { email: string, ttl: string, fullName: string, code: string }): Promise<SentMessageInfo> {
+		if (!emailData.email) {
+			return null;
+		}
+
+		return await this.mailerService.sendMail({
+			to: getEmailByEnv(emailData.email),
+			subject: '[Nestjs Boilerplate] Account deletion notice',
+			template: './terminate-account',
+			context: {
+				ttl: convertMsToMinutesSeconds(emailData.ttl, false),
+				code: emailData.code,
+				fullName: emailData.fullName,
 			},
 		});
 	}
@@ -85,7 +102,7 @@ export class MailService {
 
 		return await this.mailerService.sendMail({
 			to: getEmailByEnv(user.email),
-			subject: 'Your account has been created successfully',
+			subject: '[Nestjs Boilerplate] Your account has been created successfully',
 			template: './created-account',
 			context: user,
 		});

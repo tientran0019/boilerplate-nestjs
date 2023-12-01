@@ -7,10 +7,13 @@ import { FastifyRequest } from 'fastify';
 import { User } from '@modules/users/schemas/user.schema';
 
 import { UserProfileForToken } from '@modules/auth/auth.interface';
-import { convertToTokenProfile } from '@modules/auth/utils';
+import { convertToTokenProfile } from '@modules/auth/auth.utils';
 
 @Injectable()
 export class AccessTokenService {
+	readonly expiresIn = process.env.TOKEN_EXPIRES_IN;
+	readonly secret = process.env.TOKEN_SECRET;
+
 	constructor(
 		@Inject(CACHE_MANAGER)
 		private cacheManager: Cache,
@@ -35,7 +38,7 @@ export class AccessTokenService {
 		try {
 			// decode user profile from token
 			const decodedToken = await this.jwtService.verifyAsync(token, {
-				secret: process.env.TOKEN_SECRET,
+				secret: this.secret,
 			});
 
 			// don't copy over token field 'iat' and 'exp' to user profile
@@ -55,7 +58,7 @@ export class AccessTokenService {
 
 	async revokeToken(token: string): Promise<boolean> {
 		try {
-			await this.cacheManager.set(token, true, parseInt(process.env.TOKEN_EXPIRES_IN, 10));
+			await this.cacheManager.set(token, true, parseInt(this.expiresIn, 10));
 
 			return true;
 		} catch (error) {
@@ -76,8 +79,8 @@ export class AccessTokenService {
 		let token: string;
 		try {
 			token = await this.jwtService.signAsync(userInfoForToken, {
-				expiresIn: process.env.TOKEN_EXPIRES_IN,
-				secret: process.env.TOKEN_SECRET,
+				expiresIn: this.expiresIn,
+				secret: this.secret,
 			});
 		} catch (error) {
 			throw new UnauthorizedException(`Error encoding token : ${error}`);

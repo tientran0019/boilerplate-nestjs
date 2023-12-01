@@ -4,7 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { compare, hash } from 'bcrypt';
 
-import { UserStatus, UserVerificationProviders } from '@modules/users/user.enum';
+import { UserVerificationProviders } from '@modules/users/user.enum';
 import { ClientInfoData, ResLoginObject, TokenObject } from '@modules/auth/auth.interface';
 import { UserCredentials } from '@modules/auth/schemas/user-credentials.schema';
 import { User } from '@modules/users/schemas/user.schema';
@@ -22,6 +22,8 @@ import { VerifyDto } from '../dto/verify.dto';
 import { VerifyRequestDto } from '../dto/verify-request.dto';
 import { ForgotPasswordDto } from '../dto/forgot-password.dto';
 import { ResetPasswordDto } from '../dto/reset-password.dto';
+import { verifyUserState } from '../auth.utils';
+import { TerminateDto } from '../dto/terminate.dto';
 
 @Injectable()
 export class AuthService {
@@ -37,7 +39,11 @@ export class AuthService {
 	) { }
 
 	async findById(id: string): Promise<User> {
-		return await this.usersModel.findById(id).exec();
+		const user = await this.usersModel.findById(id).exec();
+
+		verifyUserState(user);
+
+		return user;
 	}
 
 	async signup(dto: SignupDto): Promise<User> {
@@ -90,7 +96,7 @@ export class AuthService {
 	async login(dto: CredentialsDto, clientInfo: ClientInfoData): Promise<ResLoginObject> {
 		const user = await this.verifyCredentials(dto);
 
-		this.verifyUserStatus(user);
+		verifyUserState(user);
 
 		if (process.env.FORCE_USER_VERIFICATION) {
 			const type = UserVerificationProviders[process.env.FORCE_USER_VERIFICATION];
@@ -129,13 +135,8 @@ export class AuthService {
 	async requestVerification(dto: VerifyRequestDto): Promise<OtpObject> {
 		const { type, check } = dto;
 
-		const user = await this.usersModel.findById(check);
+		const user = await this.findById(check);
 
-		this.verifyUserStatus(user);
-
-		if (!user) {
-			throw new BadRequestException('User not found');
-		}
 		if (user.verifiedBy.includes(dto.type as UserVerificationProviders)) {
 			throw new BadRequestException('User have verified already');
 		}
@@ -161,9 +162,7 @@ export class AuthService {
 	async verify(dto: VerifyDto): Promise<User> {
 		const action = dto.type === UserVerificationProviders.PHONE ? OtpActions.VERIFY_PHONE : OtpActions.VERIFY_EMAIL;
 
-		const user = await this.usersModel.findById(dto.check);
-
-		this.verifyUserStatus(user);
+		const user = await this.findById(dto.check);
 
 		if (!user) {
 			throw new BadRequestException('User not found');
@@ -190,6 +189,8 @@ export class AuthService {
 	}
 
 	async updateProfile(userId: string, data: UpdateProfileDto): Promise<User> {
+		await this.findById(userId);
+
 		return await this.usersModel.findByIdAndUpdate(userId, data, { new: true }).exec();
 	}
 
@@ -203,18 +204,6 @@ export class AuthService {
 		} catch (error) {
 			// ignore
 		}
-	}
-
-	verifyUserStatus(user: User): boolean {
-		if (!user) {
-			throw new BadRequestException('User not found');
-		}
-
-		if (user.status !== UserStatus.ACTIVE) {
-			throw new UnauthorizedException('User is inactive');
-		}
-
-		return true;
 	}
 
 	async findCredentials(userId: string): Promise<UserCredentials> {
@@ -259,12 +248,53 @@ export class AuthService {
 		return foundUser;
 	}
 
-	async refreshToken(refreshToken: string | undefined, clientInfo: ClientInfoData): Promise<TokenObject> {
-		if (!refreshToken) {
-			throw new UnauthorizedException(`Error verifying token : Token not found`);
-		}
+	/*
+	 * Refresh the access token bound with the given refresh token.
+	 */
 
-		return await this.refreshTokenService.refreshToken(refreshToken, clientInfo);
+	async refreshToken(refreshToken: string | undefined, clientInfo: ClientInfoData): Promise<TokenObject> {
+		try {
+			if (!refreshToken) {
+				throw new Error(
+					`Error verifying token : 'refresh token' is null`,
+				);
+			}
+
+			const userRefreshData = await this.refreshTokenService.verifyToken(refreshToken);
+
+			// compare the ip or useragent attributes in the clientInfo object to the ip in the database
+			if (clientInfo.ip !== userRefreshData.ip || clientInfo.useragent !== userRefreshData.useragent) {
+				// Force logout of all sessions of this user if the client info different from the client info that was stored in db when the user login
+				this.logoutAllSession(userRefreshData.userId.toString());
+				throw new Error('Client is invalid');
+			}
+
+			await this.refreshTokenService.revokeCurrentToken(userRefreshData.currentToken!);
+
+			const user = await this.findById(
+				userRefreshData.userId.toString(),
+			);
+
+			// create a JSON Web Token based on the user profile
+			const token = await this.accessTokenService.generateToken(user);
+
+			try {
+				// store token to refresh token
+				userRefreshData.currentToken = token;
+				await userRefreshData.save();
+			} catch (e) {
+				// ignore
+			}
+
+			return {
+				accessToken: token,
+				expiresIn: this.refreshTokenService.tokenExpiresIn,
+			};
+		} catch (error) {
+			throw new UnauthorizedException(
+				`Error verifying token : ${error.message}`,
+			);
+		}
 	}
 
 	async logout(refreshToken: string | undefined): Promise<void> {
@@ -281,12 +311,8 @@ export class AuthService {
 		}
 	}
 
-	async logoutAllSession(userId: string, refreshToken?: string | undefined): Promise<void> {
-		try {
-			await this.refreshTokenService.revokeAllToken(userId, refreshToken);
-		} catch (err) {
-			throw new InternalServerErrorException(err.message);
-		}
+	async logoutAllSession(userId: string, exceptToken?: string | undefined): Promise<void> {
+		await this.refreshTokenService.revokeAllToken(userId, exceptToken);
 	}
 
 	async changePassword(userId: string, data: ChangePasswordDto): Promise<void> {
@@ -312,7 +338,7 @@ export class AuthService {
 
 		await credentialsFound.save();
 
-		await this.refreshTokenService.revokeAllToken(userId);
+		await this.logoutAllSession(userId);
 	}
 
 	async forgotPassword(dto: ForgotPasswordDto): Promise<{ verificationKey: string, check: string }> {
@@ -320,12 +346,7 @@ export class AuthService {
 
 		const user = await this.usersModel.findOne({ email });
 
-		if (!user) {
-			throw new BadRequestException('User not found');
-		}
-
-		this.verifyUserStatus(user);
-
+		verifyUserState(user);
 
 		const otpData = await this.otpService.generateOtp({ check: user.id, action: OtpActions.FORGOT_PASSWORD });
 
@@ -352,11 +373,56 @@ export class AuthService {
 
 		await this.userCredentialsModel.findByIdAndUpdate(dto.check, { password });
 
-		await this.refreshTokenService.revokeAllToken(dto.check);
+		await this.logoutAllSession(dto.check);
 
 		return {
 			success: true,
 		};
 	}
 
+	async terminateRequest(userId: string): Promise<string> {
+		try {
+			if (!userId) {
+				throw new Error('User not found!');
+			}
+
+			const user = await this.usersModel.findById(userId);
+
+			verifyUserState(user);
+
+			const otpData = await this.otpService.generateOtp({ check: user.id, action: OtpActions.TERMINATE_ACCOUNT });
+
+			await this.mailService.sendUserTerminateRequest({
+				ttl: otpData.ttl,
+				code: otpData.code,
+				fullName: user.fullName,
+				email: user.email,
+			});
+
+			return otpData.verificationKey;
+		} catch (err) {
+			throw new InternalServerErrorException(err.message);
+		}
+	}
+
+	async terminate(userId: string, dto: TerminateDto): Promise<void> {
+		try {
+			if (!userId) {
+				throw new Error('User not found!');
+			}
+
+			await this.otpService.verifyOtp({
+				action: OtpActions.TERMINATE_ACCOUNT,
+				check: userId,
+				otp: dto.otp,
+				verificationKey: dto.verificationKey,
+			});
+
+			await this.usersModel.findByIdAndDelete(userId);
+
+			await this.logoutAllSession(userId);
+		} catch (err) {
+			throw new InternalServerErrorException(err.message);
+		}
+	}
 }

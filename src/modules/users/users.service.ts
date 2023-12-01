@@ -9,7 +9,7 @@
 * Last updated by: Tien Tran
 *------------------------------------------------------- */
 
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { User } from './schemas/user.schema';
 
 // import omit from 'tily/object/omit';
@@ -33,20 +33,6 @@ export class UsersService {
 		private mailService: MailService,
 	) { }
 
-	async findByEmail(email: string): Promise<User> {
-		return await this.usersModel.findOne({
-			email: email,
-		}).exec();
-	}
-
-	verifyUserStatus(user: User): boolean {
-		if (user.status !== UserStatus.ACTIVE) {
-			throw new UnauthorizedException('User is inactive');
-		}
-
-		return true;
-	}
-
 	async create(dto: CreateUserDto): Promise<User> {
 		const { sendEmail, ...userData } = dto;
 
@@ -63,12 +49,16 @@ export class UsersService {
 		return newUser;
 	}
 
-	async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
-		const existing = await this.usersModel.findByIdAndUpdate(id, updateUserDto, { new: true });
-		if (!existing) {
+	async update(id: string, updateUserDto: UpdateUserDto): Promise<UserEntity> {
+		const user = await this.usersModel.findById(id);
+
+		if (!user || user?._isDeleted) {
 			throw new NotFoundException(`User #${id} not found`);
 		}
-		return existing;
+
+		const newData = await this.usersModel.findByIdAndUpdate(id, updateUserDto, { new: true });
+
+		return newData as UserEntity;
 	}
 
 	async findAll(filter: FilterQuery<UserEntity>): Promise<PaginatedResource<UserEntity>> {
@@ -93,20 +83,19 @@ export class UsersService {
 	async findById(id: string, filter: FilterQuery<UserEntity>): Promise<UserEntity> {
 		const { fields, include } = filter;
 
-		const existing = await this.usersModel.findById(id, fields || '').populate(include);
-		console.log('DEV ~ file: users.service.ts:97 ~ UsersService ~ findById ~ existing:', existing);
+		const user = await this.usersModel.findById(id, fields || '').populate(include);
 
-		if (!existing || existing?._isDeleted) {
+		if (!user || user?._isDeleted) {
 			throw new NotFoundException(`User #${id} not found`);
 		}
 
-		return existing as UserEntity;
+		return user as UserEntity;
 	}
 
-	async delete(id: string): Promise<User> {
+	async delete(id: string): Promise<UserEntity> {
 		const deleteData = await this.usersModel.findById(id);
 
-		if (!deleteData) {
+		if (!deleteData || deleteData?._isDeleted) {
 			throw new NotFoundException(`User #${id} not found`);
 		}
 
@@ -119,6 +108,24 @@ export class UsersService {
 
 		await this.authService.logoutAllSession(id);
 
-		return deleteData;
+		return deleteData as UserEntity;
+	}
+
+	async toggleActive(id: string): Promise<UserEntity> {
+		const user = await this.usersModel.findById(id);
+
+		if (!user || user?._isDeleted) {
+			throw new NotFoundException(`User #${id} not found`);
+		}
+
+		const status = user.status;
+
+		user.status = status === UserStatus.ACTIVE ? UserStatus.INACTIVE : UserStatus.ACTIVE;
+
+		if (status === UserStatus.ACTIVE) {
+			await this.authService.logoutAllSession(id);
+		}
+
+		return await user.save() as UserEntity;
 	}
 }

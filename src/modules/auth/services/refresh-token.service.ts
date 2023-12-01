@@ -5,19 +5,20 @@ import { InjectModel } from '@nestjs/mongoose';
 import { RefreshToken } from '../schemas/refresh-token.schema';
 import { Model } from 'mongoose';
 import { AccessTokenService } from './access-token.service';
-import { ClientInfoData, TokenObject } from '../auth.interface';
+import { ClientInfoData } from '../auth.interface';
 import { FastifyRequest } from 'fastify';
-import { User } from '@modules/users/schemas/user.schema';
 import async from 'async';
-import { UserStatus } from '@modules/users/user.enum';
 
 @Injectable()
 export class RefreshTokenService {
+	readonly tokenExpiresIn = process.env.TOKEN_EXPIRES_IN;
+	readonly expiresIn = process.env.REFRESH_EXPIRES_IN;
+	readonly issuer = process.env.REFRESH_ISSUER;
+	readonly secret = process.env.REFRESH_SECRET;
+
 	constructor(
 		@InjectModel(RefreshToken.name)
 		private readonly refreshTokenModel: Model<RefreshToken>,
-		@InjectModel(User.name)
-		private readonly usersModel: Model<User>,
 		private accessTokenService: AccessTokenService,
 		private jwtService: JwtService,
 	) { }
@@ -35,9 +36,9 @@ export class RefreshTokenService {
 			token: uuidv4(),
 		};
 		const refreshToken = await this.jwtService.signAsync(data, {
-			expiresIn: process.env.REFRESH_EXPIRES_IN,
-			issuer: process.env.REFRESH_ISSUER,
-			secret: process.env.REFRESH_SECRET,
+			expiresIn: this.expiresIn,
+			issuer: this.issuer,
+			secret: this.secret,
 		});
 
 		await this.refreshTokenModel.create({
@@ -48,59 +49,6 @@ export class RefreshTokenService {
 		});
 
 		return refreshToken;
-	}
-
-	/*
-	 * Refresh the access token bound with the given refresh token.
-	 */
-
-	async refreshToken(refreshToken: string, clientInfo: ClientInfoData): Promise<TokenObject> {
-		try {
-			if (!refreshToken) {
-				throw new Error(
-					`Error verifying token : 'refresh token' is null`,
-				);
-			}
-
-			const userRefreshData = await this.verifyToken(refreshToken);
-
-			// compare the ip or useragent attributes in the clientInfo object to the ip in the database
-			if (clientInfo.ip !== userRefreshData.ip || clientInfo.useragent !== userRefreshData.useragent) {
-				// Force logout of all sessions of this user if the client info different from the client info that was stored in db when the user login
-				this.revokeAllToken(userRefreshData.userId.toString());
-				throw new Error('Client is invalid');
-			}
-
-			await this.revokeCurrentToken(userRefreshData.currentToken!);
-
-			const user = await this.usersModel.findById(
-				userRefreshData.userId,
-			);
-
-			if (user.status !== UserStatus.ACTIVE) {
-				throw new Error('User is inactive');
-			}
-
-			// create a JSON Web Token based on the user profile
-			const token = await this.accessTokenService.generateToken(user);
-
-			try {
-				// store token to refresh token
-				userRefreshData.currentToken = token;
-				await userRefreshData.save();
-			} catch (e) {
-				// ignore
-			}
-
-			return {
-				accessToken: token,
-				expiresIn: process.env.TOKEN_EXPIRES_IN,
-			};
-		} catch (error) {
-			throw new UnauthorizedException(
-				`Error verifying token : ${error.message}`,
-			);
-		}
 	}
 
 	async revokeCurrentToken(token: string): Promise<void> {
@@ -131,9 +79,9 @@ export class RefreshTokenService {
 		}
 	}
 
-	async revokeAllToken(userId: string, refreshToken?: string): Promise<void> {
+	async revokeAllToken(userId: string, exceptToken?: string): Promise<void> {
 		try {
-			const rfs = await this.refreshTokenModel.find({ userId, revoked: false, refreshToken: { $ne: refreshToken } }) || [];
+			const rfs = await this.refreshTokenModel.find({ userId, revoked: false, refreshToken: { $ne: exceptToken } }) || [];
 
 			await async.eachLimit(rfs, 10, async (rf: RefreshToken) => {
 				await this.revokeCurrentToken(rf.currentToken);
@@ -156,7 +104,7 @@ export class RefreshTokenService {
 		refreshToken: string,
 	): Promise<RefreshToken> {
 		try {
-			await this.jwtService.verifyAsync(refreshToken, { secret: process.env.REFRESH_SECRET });
+			await this.jwtService.verifyAsync(refreshToken, { secret: this.secret });
 
 			const userRefreshData = await this.refreshTokenModel.findOne({ refreshToken });
 

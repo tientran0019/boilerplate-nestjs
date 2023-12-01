@@ -9,7 +9,7 @@
 * Last updated by: Tien Tran
 *------------------------------------------------------- */
 
-import { Body, Controller, DefaultValuePipe, Delete, Get, Param, Patch, Post, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseInterceptors } from '@nestjs/common';
 import { ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { UsersService } from '@modules/users/users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -100,10 +100,24 @@ export class UsersController {
 		type: UserEntity,
 	})
 	@Patch(':id')
-	async update(@Param('id', new RequiredValuePipe()) id: string, @Body() updateDto: UpdateUserDto): Promise<User> {
+	async update(@Param('id', new RequiredValuePipe()) id: string, @Body() updateDto: UpdateUserDto): Promise<UserEntity> {
 		return this.usersService.update(id, updateDto);
 	}
 
+	@ApiOperation({
+		summary: 'Admin deactive or active the user',
+		description: `
+		* Only admin can use this API
+		`,
+	})
+	@Patch('change-status/:id')
+	async toggleActive(@Param('id', new RequiredValuePipe()) id: string): Promise<{ success: boolean }> {
+		await this.usersService.toggleActive(id);
+
+		return {
+			success: true,
+		};
+	}
 
 	@ApiOperation({
 		summary: 'Admin deletes the user data',
@@ -111,11 +125,12 @@ export class UsersController {
 		* Only admin can use this API
 		`,
 	})
-	@ApiOkResponse({
-		type: UserEntity,
-	})
 	@Delete(':id')
-	async delete(@Param('id', new RequiredValuePipe()) id: string): Promise<User> {
-		return this.usersService.delete(id);
+	async delete(@Param('id', new RequiredValuePipe()) id: string): Promise<{ success: boolean }> {
+		await this.usersService.delete(id);
+
+		return {
+			success: true,
+		};
 	}
 }

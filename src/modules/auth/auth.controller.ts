@@ -1,6 +1,7 @@
 import {
 	Body,
 	Controller,
+	Delete,
 	Get,
 	NotFoundException,
 	Patch,
@@ -33,6 +34,9 @@ import { ClientInfo } from './decorators/client-info.decorator';
 import Serializer from '@modules/base/interceptors/mongoose-class-serializer.interceptor';
 import { UserEntity } from '@modules/users/entities/user.entity';
 import { Token } from './decorators/token.decorator';
+import { RequiredValuePipe } from '@modules/base/pipes/required.pipe';
+import { TerminateDto } from './dto/terminate.dto';
+import { UserRole } from '@modules/users/user.enum';
 
 @ApiTags('Auth')
 @Throttle({ default: { limit: 10, ttl: 60000 } })
@@ -91,10 +95,6 @@ export class AuthController {
 	@Get('me')
 	async getProfile(@CurrentUser() currentUser: UserProfileForToken): Promise<User> {
 		const user = await this.authService.findById(currentUser.id);
-
-		if (!user) {
-			throw new NotFoundException('User not found');
-		}
 
 		return user;
 	}
@@ -174,6 +174,36 @@ export class AuthController {
 	@Post('logout')
 	async logout(@Token('Refresh') refreshToken: string | undefined): Promise<{ success: boolean; }> {
 		await this.authService.logout(refreshToken);
+
+		return {
+			success: true,
+		};
+	}
+
+	@Throttle({ default: { limit: 1, ttl: 60000 } })
+	@ApiOperation({ summary: 'Request deletion of the user account and all related data' })
+	@ApiBearerAuth()
+	@Authorize({
+		allowedRoles: [UserRole.USER],
+	})
+	@Post('terminate-request')
+	async terminateRequest(@CurrentUser('id', new RequiredValuePipe()) userId: string): Promise<{ verificationKey: string; }> {
+		const verificationKey = await this.authService.terminateRequest(userId);
+
+		return {
+			verificationKey,
+		};
+	}
+
+	@Throttle({ default: { limit: 3, ttl: 60000 } })
+	@ApiOperation({ summary: 'Confirm deletion of the user account and all related data' })
+	@ApiBearerAuth()
+	@Authorize({
+		allowedRoles: [UserRole.USER],
+	})
+	@Delete('terminate')
+	async terminate(@CurrentUser('id', new RequiredValuePipe()) userId: string, dto: TerminateDto): Promise<{ success: boolean; }> {
+		await this.authService.terminate(userId, dto);
 
 		return {
 			success: true,
