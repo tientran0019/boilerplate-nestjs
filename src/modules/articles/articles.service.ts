@@ -4,7 +4,6 @@ import { UpdateArticleDto } from './dto/update-article.dto';
 import { Article } from './schemas/article.schema';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { ArticleEntity } from './entities/article.entity';
 import { FilterQuery, PaginatedResource } from '@modules/base/decorators/filter.decorator';
 
 @Injectable()
@@ -34,7 +33,7 @@ export class ArticlesService {
 
 		return {
 			total,
-			items: items as Article[],
+			items,
 			skip,
 			limit,
 		};
@@ -66,7 +65,6 @@ export class ArticlesService {
 
 	async findBySlug(slug: string, filter: FilterQuery<Article> = {}): Promise<Article> {
 		const { fields, include } = filter;
-		console.log('DEV ~ file: articles.service.ts:72 ~ ArticlesService ~ findBySlug ~ include:', include);
 
 		const data = await this.articleModel.findOne({ _isDeleted: false, slug }, fields || '').populate(include);
 

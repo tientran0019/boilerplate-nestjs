@@ -22,10 +22,10 @@ export class AuthorizeGuard implements CanActivate {
 		// console.log('DEV ~ file: authorize.guard.ts:22 ~ AuthorizeGuard ~ canActivate ~ request:', request);
 		const token = this.accessTokenService.extractTokenFromHeader(request);
 
-		const data = request.body;
-		console.log('DEV ~ file: authorize.guard.ts:106 ~ AuthorizeGuard ~ canActivate ~ request.query:', request.query);
-		console.log('DEV ~ file: authorize.guard.ts:106 ~ AuthorizeGuard ~ canActivate ~ request.params:', request.params);
-		console.log('DEV ~ file: authorize.guard.ts:106 ~ AuthorizeGuard ~ canActivate ~ data:', data);
+		// const data = request.body;
+		// console.log('DEV ~ file: authorize.guard.ts:106 ~ AuthorizeGuard ~ canActivate ~ request.query:', request.query);
+		// console.log('DEV ~ file: authorize.guard.ts:106 ~ AuthorizeGuard ~ canActivate ~ request.params:', request.params);
+		// console.log('DEV ~ file: authorize.guard.ts:106 ~ AuthorizeGuard ~ canActivate ~ data:', data);
 
 		// No access if authorization details are missing
 		let currentUser: UserProfileForToken;

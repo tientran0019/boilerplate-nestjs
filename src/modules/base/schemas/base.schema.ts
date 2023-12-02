@@ -1,5 +1,5 @@
 import { Prop } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Document } from 'mongoose';
 
 export class BaseSchema extends Document {
 	@Prop({
@@ -7,14 +7,30 @@ export class BaseSchema extends Document {
 	})
 	_isDeleted: boolean; // using for soft delete
 
-	@Prop()
+	@Prop({
+		required: false,
+	})
 	_deletedAt: number; // using for soft delete
+
+	@Prop({
+		ref: 'User',
+		required: false,
+		type: String ,
+	})
+	_deletedBy?: string;
 
 	@Prop({
 		immutable: true,
 		match: /^\d{13}$/,
 	})
 	createdAt: number;
+
+	@Prop({
+		ref: 'User',
+		required: false,
+		type: String ,
+	})
+	createdBy?: string;
 
 	@Prop({
 		match: /^\d{13}$/,
@@ -24,14 +40,7 @@ export class BaseSchema extends Document {
 	@Prop({
 		ref: 'User',
 		required: false,
-		type: Types.ObjectId,
+		type: String,
 	})
-	updatedBy?: Types.ObjectId;
-
-	@Prop({
-		// ref: User.name,
-		required: true,
-		type: String ,
-	})
-	_deletedBy?: string;
+	updatedBy?: string;
 }

@@ -53,7 +53,7 @@ export class ArticlesController {
 
 	@ApiBearerAuth()
 	@Authorize({
-		allowedRoles: [Permissions.OWNER],
+		allowedRoles: [UserRole.ADMIN],
 	})
 	@Patch(':id')
 	async update(@Param('id', new RequiredValuePipe()) id: string, @Body() updateDto: UpdateArticleDto, @CurrentUser('id', new RequiredValuePipe()) userId: string): Promise<Article> {
@@ -62,7 +62,7 @@ export class ArticlesController {
 
 	@ApiBearerAuth()
 	@Authorize({
-		allowedRoles: [Permissions.OWNER],
+		allowedRoles: [UserRole.ADMIN],
 	})
 	@Delete(':id')
 	async remove(
