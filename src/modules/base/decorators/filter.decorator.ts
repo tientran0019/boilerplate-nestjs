@@ -16,38 +16,59 @@ export interface FilterQuery<T> {
 }
 
 export type PaginatedResource<T> = {
-    items: T[];
-    total: number;
-    skip: number;
-    limit: number;
+	items: T[];
+	total: number;
+	skip: number;
+	limit: number;
 };
 
 export const Filter = createParamDecorator(
 	(data: keyof FilterQuery<Document>, ctx: ExecutionContext) => {
 		const request = ctx.switchToHttp().getRequest();
 
-		const filter = (request.query?.filter ? JSON.parse(request.query?.filter || '{}') : qs.parse(
-			qs.stringify(request.query),
-			{
-				decoder(str: string, defaultDecoder: qs.defaultDecoder, charset: string, type: 'key' | 'value') {
-					if (type === 'value' && /^(?:-(?:[1-9](?:\d{0,2}(?:,\d{3})+|\d*))|(?:0|(?:[1-9](?:\d{0,2}(?:,\d{3})+|\d*))))(?:.\d+|)$/.test(str)) {
-						return parseFloat(str);
+		// TODO: There is an error when transmitting Array of Object on Swagger
+		/* {
+			"filter": {
+				"include": [
+					{
+						"path": "author",
+						"select": ["fullName", "email", "phone"]
+					},
+					{
+						"path": "categories",
+						"select": ["name", "slug"]
 					}
+				]
+			}
+		}
+			*/
+		const filter = (
+			request.query?.filter ?
+				JSON.parse(request.query?.filter || '{}') :
+				qs.parse(
+					qs.stringify(request.query),
+					{
+						comma: true,
+						decoder(str: string, defaultDecoder: qs.defaultDecoder, charset: string, type: 'key' | 'value') {
+							if (type === 'value' && /^(?:-(?:[1-9](?:\d{0,2}(?:,\d{3})+|\d*))|(?:0|(?:[1-9](?:\d{0,2}(?:,\d{3})+|\d*))))(?:.\d+|)$/.test(str)) {
+								return parseFloat(str);
+							}
 
-					const keywords = {
-						true: true,
-						false: false,
-						null: null,
-						undefined: undefined,
-					};
-					if (type === 'value' && str in keywords) {
-						return keywords[str];
-					}
+							const keywords = {
+								true: true,
+								false: false,
+								null: null,
+								undefined: undefined,
+							};
+							if (type === 'value' && str in keywords) {
+								return keywords[str];
+							}
 
-					return defaultDecoder(str, defaultDecoder, charset);
-				},
-			},
-		).filter) || {};
+							return defaultDecoder(str, defaultDecoder, charset);
+						},
+					},
+				).filter
+		) || {};
 
 		return data ? filter?.[data] : filter;
 	},

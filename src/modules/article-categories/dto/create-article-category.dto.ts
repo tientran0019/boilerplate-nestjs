@@ -16,7 +16,7 @@ export class CreateArticleCategoryDto {
 
 	@IsNotEmpty()
 	@IsString()
-	@IsUrl()
+	// @IsUrl()
 	readonly thumbnail: string;
 
 	@IsOptional()

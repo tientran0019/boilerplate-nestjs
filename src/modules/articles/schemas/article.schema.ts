@@ -79,7 +79,7 @@ export class Article extends BaseSchema {
 	@Prop({
 		ref: User.name,
 		required: true,
-		type: Types.ObjectId ,
+		type: Types.ObjectId,
 	})
 	author: Types.ObjectId;
 

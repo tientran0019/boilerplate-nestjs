@@ -14,11 +14,13 @@ export class ArticlesService {
 		private readonly articleModel: Model<Article>,
 	) { }
 
-	async create(createArticleDto: CreateArticleDto): Promise<ArticleEntity> {
-		return this.articleModel.create(createArticleDto);
+	async create(data: CreateArticleDto & { author: string }): Promise<Article> {
+		const item = await this.articleModel.create(data);
+
+		return item;
 	}
 
-	async findAll(filter: FilterQuery<ArticleEntity> = {}): Promise<PaginatedResource<ArticleEntity>> {
+	async findAll(filter: FilterQuery<Article> = {}): Promise<PaginatedResource<Article>> {
 		const { limit = 10, skip = 0, sort, fields, include, where = {} } = filter;
 
 		const [total, items] = await Promise.all([
@@ -29,15 +31,16 @@ export class ArticlesService {
 				sort,
 			}).populate(include),
 		]);
+
 		return {
 			total,
-			items: items as ArticleEntity[],
+			items: items as Article[],
 			skip,
 			limit,
 		};
 	}
 
-	async findById(id: string, filter: FilterQuery<ArticleEntity> = {}): Promise<ArticleEntity> {
+	async findById(id: string, filter: FilterQuery<Article> = {}): Promise<Article> {
 		const { fields, include } = filter;
 
 		const data = await this.articleModel.findById(id, fields || '').populate(include);
@@ -46,10 +49,10 @@ export class ArticlesService {
 			throw new NotFoundException(`Record #${id} not found`);
 		}
 
-		return data as ArticleEntity;
+		return data as Article;
 	}
 
-	async findOne(filter: FilterQuery<ArticleEntity> = {}): Promise<ArticleEntity> {
+	async findOne(filter: FilterQuery<Article> = {}): Promise<Article> {
 		const { fields, include, where = {} } = filter;
 
 		const data = await this.articleModel.findOne({ ...where, _isDeleted: false }, fields || '').populate(include);
@@ -58,22 +61,23 @@ export class ArticlesService {
 			throw new NotFoundException(`Record not found`);
 		}
 
-		return data as ArticleEntity;
+		return data as Article;
 	}
 
-	async findBySlug(slug: string, filter: FilterQuery<ArticleEntity> = {}): Promise<ArticleEntity> {
-		const { fields, include, where = {} } = filter;
+	async findBySlug(slug: string, filter: FilterQuery<Article> = {}): Promise<Article> {
+		const { fields, include } = filter;
+		console.log('DEV ~ file: articles.service.ts:72 ~ ArticlesService ~ findBySlug ~ include:', include);
 
-		const data = await this.articleModel.findOne({ ...where, _isDeleted: false, slug }, fields || '').populate(include);
+		const data = await this.articleModel.findOne({ _isDeleted: false, slug }, fields || '').populate(include);
 
 		if (!data) {
 			throw new NotFoundException(`Record not found`);
 		}
 
-		return data as ArticleEntity;
+		return data as Article;
 	}
 
-	async update(id: string, updateArticleDto: UpdateArticleDto): Promise<ArticleEntity> {
+	async update(id: string, updateArticleDto: UpdateArticleDto & { updatedBy: string }): Promise<Article> {
 		const user = await this.articleModel.findById(id);
 
 		if (!user || user?._isDeleted) {
@@ -82,10 +86,10 @@ export class ArticlesService {
 
 		const newData = await this.articleModel.findByIdAndUpdate(id, updateArticleDto, { new: true });
 
-		return newData as ArticleEntity;
+		return newData as Article;
 	}
 
-	async delete(id: string): Promise<ArticleEntity> {
+	async delete(id: string, userId?: string): Promise<Article> {
 		const deleteData = await this.articleModel.findById(id);
 
 		if (!deleteData || deleteData?._isDeleted) {
@@ -94,9 +98,10 @@ export class ArticlesService {
 
 		deleteData._isDeleted = true;
 		deleteData._deletedAt = Date.now();
+		deleteData._deletedBy = userId;
 
 		await deleteData.save();
 
-		return deleteData as ArticleEntity;
+		return deleteData as Article;
 	}
 }

@@ -1,5 +1,5 @@
 import { Prop } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 export class BaseSchema extends Document {
 	@Prop({
@@ -20,4 +20,18 @@ export class BaseSchema extends Document {
 		match: /^\d{13}$/,
 	})
 	updatedAt: number;
+
+	@Prop({
+		ref: 'User',
+		required: false,
+		type: Types.ObjectId,
+	})
+	updatedBy?: Types.ObjectId;
+
+	@Prop({
+		// ref: User.name,
+		required: true,
+		type: String ,
+	})
+	_deletedBy?: string;
 }

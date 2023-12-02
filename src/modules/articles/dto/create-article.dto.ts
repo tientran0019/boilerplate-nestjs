@@ -1,6 +1,8 @@
-import { IsArray, IsEnum, IsMongoId, IsNotEmpty, IsNumber, IsString, IsUrl, MinLength } from 'class-validator';
+import { ArrayMinSize, IsArray, IsEnum, IsMongoId, IsNotEmpty, IsNumber, IsOptional, IsString, IsUrl, MinLength, ValidateNested } from 'class-validator';
 import { ArticleStatus } from '../article.num';
 import { Types } from 'mongoose';
+import { CreateArticleCategoryDto } from '@modules/article-categories/dto/create-article-category.dto';
+import { Type } from 'class-transformer';
 
 export class CreateArticleDto {
 	@IsNotEmpty()
@@ -17,7 +19,7 @@ export class CreateArticleDto {
 
 	@IsNotEmpty()
 	@IsString()
-	@IsUrl()
+	// @IsUrl()
 	readonly thumbnail: string;
 
 	@IsNotEmpty()
@@ -30,16 +32,18 @@ export class CreateArticleDto {
 
 	@IsNotEmpty()
 	@IsArray()
-	@MinLength(1)
+	@ArrayMinSize(1)
 	readonly tag: string[];
 
-	@IsNotEmpty()
+	@IsOptional()
 	@IsNumber()
-	readonly publishedDate: number;
+	readonly publishedDate?: number;
 
 	@IsNotEmpty()
-	@IsMongoId()
+	// @IsMongoId()
 	@IsArray()
-	@MinLength(1)
+	@ArrayMinSize(1)
+	// @ValidateNested({ each: true })
+	// @Type(() => CreateArticleCategoryDto)
 	readonly categories: Types.ObjectId[];
 }

@@ -1,10 +1,10 @@
-import { Deleted } from "@modules/base/decorators/deleted.decorator";
-import { ApiProperty } from "@nestjs/swagger";
-import { Exclude, Type } from "class-transformer";
-import { IsEnum, IsUrl } from "class-validator";
-import { ArticleStatus } from "../article.num";
-import { User } from "@modules/users/schemas/user.schema";
-import { ArticleCategory } from "@modules/article-categories/schemas/article-category.schema";
+import { Deleted } from '@modules/base/decorators/deleted.decorator';
+import { ApiProperty } from '@nestjs/swagger';
+import { Exclude, Type } from 'class-transformer';
+import { IsEnum, IsUrl } from 'class-validator';
+import { ArticleStatus } from '../article.num';
+import { User } from '@modules/users/schemas/user.schema';
+import { ArticleCategory } from '@modules/article-categories/schemas/article-category.schema';
 
 export class ArticleEntity {
 	@Deleted()
@@ -57,13 +57,13 @@ export class ArticleEntity {
 	@Deleted()
 	readonly tag: string[];
 
-	@Deleted()
-	@Type(() => User)
-	readonly author: User;
+	// @Deleted()
+	// @Type(() => User)
+	// readonly author: User;
 
-	@Deleted()
-	@Type(() => ArticleCategory)
-	readonly categories: ArticleCategory[];
+	// @Deleted()
+	// @Type(() => ArticleCategory)
+	// readonly categories: ArticleCategory[];
 
 	constructor(partial: Partial<ArticleEntity>) {
 		Object.assign(this, partial);

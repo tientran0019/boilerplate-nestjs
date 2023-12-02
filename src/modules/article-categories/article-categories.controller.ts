@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors } fr
 import { ArticleCategoriesService } from './article-categories.service';
 import { CreateArticleCategoryDto } from './dto/create-article-category.dto';
 import { UpdateArticleCategoryDto } from './dto/update-article-category.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Authorize } from '@modules/auth/decorators/authorize.decorator';
 import { UserRole } from '@modules/users/user.enum';
 import Serializer from '@modules/base/interceptors/mongoose-class-serializer.interceptor';
@@ -17,6 +17,7 @@ import { Permissions } from '@modules/auth/auth.interface';
 export class ArticleCategoriesController {
 	constructor(private readonly articleCategoriesService: ArticleCategoriesService) { }
 
+	@ApiBearerAuth()
 	@Authorize({
 		allowedRoles: [UserRole.ADMIN],
 	})
@@ -35,6 +36,7 @@ export class ArticleCategoriesController {
 		return this.articleCategoriesService.findBySlug(slug, filter);
 	}
 
+	@ApiBearerAuth()
 	@Authorize({
 		allowedRoles: [Permissions.OWNER],
 	})
@@ -43,6 +45,7 @@ export class ArticleCategoriesController {
 		return this.articleCategoriesService.update(id, updateDto);
 	}
 
+	@ApiBearerAuth()
 	@Authorize({
 		allowedRoles: [Permissions.OWNER],
 	})

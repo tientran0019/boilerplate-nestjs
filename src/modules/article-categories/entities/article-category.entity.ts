@@ -37,7 +37,7 @@ export class ArticleCategoryEntity {
 	readonly status: ArticleStatus;
 
 	@Deleted()
-	@IsUrl()
+	// @IsUrl()
 	readonly thumbnail: string;
 
 	@Deleted()
