@@ -5,10 +5,10 @@ import { UpdateArticleCategoryDto } from './dto/update-article-category.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Authorize } from '@modules/auth/decorators/authorize.decorator';
 import { UserRole } from '@modules/users/user.enum';
-import Serializer from '@modules/base/interceptors/mongoose-class-serializer.interceptor';
+import Serializer from '@common/interceptors/mongoose-class-serializer.interceptor';
 import { ArticleCategoryEntity } from './entities/article-category.entity';
-import { Filter, FilterQuery, PaginatedResource } from '@modules/base/decorators/filter.decorator';
-import { RequiredValuePipe } from '@modules/base/pipes/required.pipe';
+import { Filter, FilterQuery, PaginatedResource } from '@common/decorators/filter.decorator';
+import { RequiredValuePipe } from '@common/pipes/required.pipe';
 import { Permissions } from '@modules/auth/auth.interface';
 
 @ApiTags('Article Categories')

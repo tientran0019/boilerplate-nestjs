@@ -1,4 +1,4 @@
-import { Deleted } from '@modules/base/decorators/deleted.decorator';
+import { Deleted } from '@common/decorators/deleted.decorator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude, Type } from 'class-transformer';
 import { IsEnum, IsUrl } from 'class-validator';

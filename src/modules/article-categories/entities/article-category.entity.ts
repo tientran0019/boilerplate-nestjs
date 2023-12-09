@@ -1,5 +1,5 @@
 import { ArticleStatus } from '@modules/articles/article.num';
-import { Deleted } from '@modules/base/decorators/deleted.decorator';
+import { Deleted } from '@common/decorators/deleted.decorator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
 import { IsEnum, IsOptional, IsUrl } from 'class-validator';

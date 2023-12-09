@@ -5,7 +5,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { ArticleCategory } from './schemas/article-category.schema';
 import { ArticleCategoryEntity } from './entities/article-category.entity';
-import { FilterQuery, PaginatedResource } from '@modules/base/decorators/filter.decorator';
+import { FilterQuery, PaginatedResource } from '@common/decorators/filter.decorator';
 
 @Injectable()
 export class ArticleCategoriesService {

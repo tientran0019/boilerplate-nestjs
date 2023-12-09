@@ -4,7 +4,7 @@ import { UpdateArticleDto } from './dto/update-article.dto';
 import { Article } from './schemas/article.schema';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { FilterQuery, PaginatedResource } from '@modules/base/decorators/filter.decorator';
+import { FilterQuery, PaginatedResource } from '@common/decorators/filter.decorator';
 
 @Injectable()
 export class ArticlesService {

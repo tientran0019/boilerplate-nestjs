@@ -16,12 +16,12 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './schemas/user.schema';
 import { UserEntity } from './entities/user.entity';
-import Serializer from '@modules/base/interceptors/mongoose-class-serializer.interceptor';
+import Serializer from '@common/interceptors/mongoose-class-serializer.interceptor';
 import { Authorize } from '@modules/auth/decorators/authorize.decorator';
 import { UserRole } from './user.enum';
-import { FilterQueryDto, FindByIdQueryDto } from '@modules/base/dto/filter.dto';
-import { Filter, FilterQuery, PaginatedResource } from '@modules/base/decorators/filter.decorator';
-import { RequiredValuePipe } from '@modules/base/pipes/required.pipe';
+import { FilterQueryDto, FindByIdQueryDto } from '@common/dto/filter.dto';
+import { Filter, FilterQuery, PaginatedResource } from '@common/decorators/filter.decorator';
+import { RequiredValuePipe } from '@common/pipes/required.pipe';
 
 @ApiTags('Users Management (Only admin can use this APIs)')
 @ApiBearerAuth()

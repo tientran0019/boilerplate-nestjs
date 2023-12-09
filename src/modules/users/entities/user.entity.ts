@@ -2,11 +2,18 @@ import { Exclude, Expose, Transform, Type } from 'class-transformer';
 import { UserGender, UserRole, UserStatus, UserVerificationProviders } from '@modules/users/user.enum';
 import { Address } from '../schemas/address.schema';
 import { ApiProperty } from '@nestjs/swagger';
-import { Deleted } from '@modules/base/decorators/deleted.decorator';
+import { Deleted } from '@common/decorators/deleted.decorator';
 import { IsEnum } from 'class-validator';
+import { ObjectId } from 'mongoose';
 
 // @Exclude()
 export class UserEntity {
+	_id?: ObjectId | string;
+
+	// @Expose()
+	// @Transform((value) => value.obj?._id?.toString(), { toClassOnly: true })
+	// id?: string;
+
 	@Deleted()
 	readonly id: string;
 

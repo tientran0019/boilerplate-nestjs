@@ -13,6 +13,9 @@
 			"@utils/*": [
 				"src/utils/*"
 			],
+			"@common/*": [
+				"src/common/*"
+			],
 			"@repositories/*": [
 				"src/repositories/*"
 			]

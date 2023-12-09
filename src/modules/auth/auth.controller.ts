@@ -14,28 +14,31 @@ import { RefreshJwtGuard } from '@modules/auth/guards/refresh.guard';
 import { ClientInfoData, Permissions, ResLoginObject, TokenObject, UserProfileForToken } from '@modules/auth/auth.interface';
 import { User } from '@modules/users/schemas/user.schema';
 import { Authorize } from '@modules/auth/decorators/authorize.decorator';
-import { UpdateProfileDto } from './dto/update-profile.dto';
-import { SignupDto } from './dto/signup.dto';
-import { ChangePasswordDto } from './dto/change-password';
+
 import {
 	ApiBearerAuth,
 	ApiOperation,
 	ApiOkResponse,
 	ApiTags,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
+
+import Serializer from '@common/interceptors/mongoose-class-serializer.interceptor';
+import { RequiredValuePipe } from '@common/pipes/required.pipe';
+import { UserEntity } from '@modules/users/entities/user.entity';
+import { UserRole } from '@modules/users/user.enum';
+
 import { VerifyDto } from './dto/verify.dto';
 import { VerifyRequestDto } from './dto/verify-request.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import { Throttle } from '@nestjs/throttler';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { ClientInfo } from './decorators/client-info.decorator';
-import Serializer from '@modules/base/interceptors/mongoose-class-serializer.interceptor';
-import { UserEntity } from '@modules/users/entities/user.entity';
 import { Token } from './decorators/token.decorator';
-import { RequiredValuePipe } from '@modules/base/pipes/required.pipe';
 import { TerminateDto } from './dto/terminate.dto';
-import { UserRole } from '@modules/users/user.enum';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { SignupDto } from './dto/signup.dto';
+import { ChangePasswordDto } from './dto/change-password';
 
 @ApiTags('Auth')
 @Throttle({ default: { limit: 10, ttl: 60000 } })

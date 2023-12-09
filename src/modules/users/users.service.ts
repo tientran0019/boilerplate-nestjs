@@ -21,7 +21,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 // import { UserCredentials } from '@modules/auth/schemas/user-credentials.schema';
 import { AuthService } from '@modules/auth/services/auth.service';
 import { MailService } from '@modules/mail/mail.service';
-import { FilterQuery, PaginatedResource } from '@modules/base/decorators/filter.decorator';
+import { FilterQuery, PaginatedResource } from '@common/decorators/filter.decorator';
 import { UserEntity } from './entities/user.entity';
 
 @Injectable()

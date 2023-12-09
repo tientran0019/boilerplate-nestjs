@@ -11,7 +11,7 @@
 
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-import { BaseSchema } from '@modules/base/schemas/base.schema';
+import { BaseSchema } from '@common/schemas/base.schema';
 import { ArticleStatus } from '@modules/articles/article.num';
 
 export type ArticleCategoryDocument = HydratedDocument<ArticleCategory>;

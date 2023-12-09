@@ -19,7 +19,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import redisStore from 'cache-manager-ioredis-yet';
 import { CacheModule } from '@nestjs/cache-manager';
 
-import { CoreModule } from '@modules/base/core.module';
+import { CoreModule } from '@common/core.module';
 import { AuthModule } from '@modules/auth/auth.module';
 import { UsersModule } from '@modules/users/users.module';
 import { ArticlesModule } from '@modules/articles/articles.module';

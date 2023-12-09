@@ -13,7 +13,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 import { UserGender, UserRole, UserStatus, UserVerificationProviders } from '@modules/users/user.enum';
 import { Address, AddressSchema } from './address.schema';
-import { BaseSchema } from '@modules/base/schemas/base.schema';
+import { BaseSchema } from '@common/schemas/base.schema';
 
 export type UserDocument = HydratedDocument<User>;
 
