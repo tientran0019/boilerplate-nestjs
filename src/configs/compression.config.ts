@@ -9,10 +9,8 @@
 * Last updated by: Tien Tran
 *------------------------------------------------------- */
 
-import { NestFastifyApplication } from '@nestjs/platform-fastify';
-
 import compression from '@fastify/compress';
 
-export default async function configCompression(app: NestFastifyApplication) {
+export default async function configCompression(app) {
 	await app.register(compression, { encodings: ['gzip', 'deflate'] });
 }

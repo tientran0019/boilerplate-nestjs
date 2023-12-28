@@ -9,13 +9,12 @@
 * Last updated by: Tien Tran
 *------------------------------------------------------- */
 
-import { NestFastifyApplication } from '@nestjs/platform-fastify';
-
-import helmet from '@fastify/helmet';
+import * as helmet from '@fastify/helmet';
 
 
-export default async function configHelmet(app: NestFastifyApplication) {
+export default async function configHelmet(app) {
 	await app.register(helmet, {
+		global: true,
 		contentSecurityPolicy: {
 			directives: {
 				defaultSrc: [`'self'`],

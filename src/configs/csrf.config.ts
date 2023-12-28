@@ -9,10 +9,8 @@
 * Last updated by: Tien Tran
 *------------------------------------------------------- */
 
-import { NestFastifyApplication } from '@nestjs/platform-fastify';
-
 import csrf from '@fastify/csrf-protection';
 
-export default async function configCsrf(app: NestFastifyApplication) {
+export default async function configCsrf(app) {
 	await app.register(csrf);
 }
